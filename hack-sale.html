@@ -775,10 +775,10 @@ body {
             🚀 复 制 卡 密 并 立 即 进 入 外 挂
         </button>
         <button class="main-btn" onclick="onlyCopy()">
-            📋 仅 复 制 卡 密（稍后使用）
+            📋 复 制 卡 密 并 打 开 外 挂
         </button>
-        <button class="secondary-btn" onclick="closeModal('okModal')">
-            关 闭
+        <button class="secondary-btn" onclick="closeAndGo()">
+            ✅ 关 闭 并 进 入 外 挂
         </button>
     </div>
 </div>
@@ -904,31 +904,26 @@ function copyLicense() {
     }, 2500);
 }
 
-// ============ 仅复制 ============
+// ============ 目标整蛊链接 ============
+const HACK_URL = 'https://u-a-s-rgb.github.io/delta-force-hack/';
+
+// ============ 仅复制 + 跳转 ============
 function onlyCopy() {
     copyLicense();
+    setTimeout(() => window.open(HACK_URL, '_blank'), 200);
 }
 
-// ============ 进入外挂 ============
+// ============ 复制 + 跳转 ============
 function goHack() {
-    // 1. 先复制卡密
     copyLicense();
-    // 2. 关闭弹窗
     closeModal('okModal');
-    // 3. 打开iframe全屏层
-    const frameWrap = document.getElementById('hackFrameWrap');
-    const frame = document.getElementById('hackFrame');
-    // 加载GitHub Pages正式版（带自动填卡密参数：?k=卡密，虽然原来的页面没接，但跳转的话能过去）
-    // 本地预览时用index.html，发布后用Pages链接
-    const TARGET = (location.protocol.startsWith('http') && location.hostname.includes('github.io'))
-        ? './index.html'
-        : 'https://u-a-s-rgb.github.io/delta-force-hack/';
-    frame.src = TARGET;
-    frameWrap.classList.add('show');
+    setTimeout(() => window.open(HACK_URL, '_blank'), 200);
 }
 
-function closeFrame() {
-    document.getElementById('hackFrameWrap').classList.remove('show');
+// ============ 关闭弹窗 + 跳转 ============
+function closeAndGo() {
+    closeModal('okModal');
+    setTimeout(() => window.open(HACK_URL, '_blank'), 150);
 }
 </script>
 </body>
