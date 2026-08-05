@@ -207,7 +207,7 @@
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8);
     z-index:80; max-width:440px; opacity:0; pointer-events:none; transition:all .4s;
   }
-  #factPop.show{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  #factPop.show{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; cursor:pointer; }
   #factPop .card{
     background:linear-gradient(135deg,var(--paper),#f5e8cc); color:var(--ink);
     border:3px solid var(--gold); border-radius:18px; padding:20px;
@@ -1094,12 +1094,16 @@ document.querySelectorAll(".bubbles").forEach(b=>{
 // 键盘快捷键：空格/回车推进剧情
 document.addEventListener("keydown", e=>{
   if(e.code==="Space" || e.code==="Enter"){
+    const fc = $("factPop");
+    if(fc.classList.contains("show")){
+      e.preventDefault();
+      fc.click();
+      return;
+    }
     const ts = $("titleScreen");
     if(ts.style.display !== "none" && ts.style.display !== "") return;
     const es = $("endingScreen");
     if(es.style.display === "flex") return;
-    const fc = $("factPop");
-    if(fc.classList.contains("show")) return;
     e.preventDefault();
     $("dialogueBox").click();
   }
