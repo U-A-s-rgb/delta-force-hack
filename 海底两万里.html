@@ -873,7 +873,7 @@ function setPortrait(side, who, active){
   const cap = who.charAt(0).toUpperCase()+who.slice(1);
   const pngMap = { nemo:"nemo", aronnax:"aronnax", ned:"ned" };
   const fname = pngMap[who] || who;
-  const imgSrc = fname + ".png";
+  const imgSrc = fname + ".jpg";
   el.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:contain"
     onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
     onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
@@ -1056,11 +1056,11 @@ $("replayBtn").addEventListener("click", ()=>{
 });
 
 // 角色卡片立绘
-$("cardNemo").innerHTML = `<img src="nemo.png" style="width:100%;height:100%;object-fit:contain"
+$("cardNemo").innerHTML = `<img src="nemo.jpg" style="width:100%;height:100%;object-fit:contain"
   onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
   onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
   <svg style="display:none;width:100%;height:100%"><use href="#svgNemo"/></svg>`;
-$("cardAronnax").innerHTML = `<img src="aronnax.png" style="width:100%;height:100%;object-fit:contain"
+$("cardAronnax").innerHTML = `<img src="aronnax.jpg" style="width:100%;height:100%;object-fit:contain"
   onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
   onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
   <svg style="display:none;width:100%;height:100%"><use href="#svgAronnax"/></svg>`;
