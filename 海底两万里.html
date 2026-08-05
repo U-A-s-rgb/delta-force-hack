@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>海底两万里 · 海洋探险</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,7 +14,8 @@
   body{
     font-family:"Comic Sans MS","PingFang SC","Microsoft YaHei",sans-serif;
     background:var(--deep2); color:#eaf2ff; overflow:hidden; height:100vh;
-    user-select:none;
+    user-select:none; -webkit-tap-highlight-color:transparent;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
   /* ===== 舞台 ===== */
   #stage{ position:relative; width:100vw; height:100vh; overflow:hidden; }
@@ -238,6 +239,99 @@
     padding:10px 30px; border-radius:25px; cursor:pointer; font-size:15px; font-family:inherit;
   }
   .replay-btn:hover{ background:var(--gold); color:var(--ink); }
+
+  /* ===== 移动端适配 ===== */
+  @media screen and (max-width: 768px){
+    /* 顶部状态栏 */
+    #hud{ padding:6px 10px; flex-wrap:wrap; gap:6px; }
+    #chapterTag{ font-size:11px; padding:3px 10px; order:1; }
+    #stats{ gap:4px; order:2; width:100%; justify-content:space-between; }
+    .stat{ padding:3px 7px; font-size:10px; gap:3px; }
+    .stat .ic{ font-size:13px; }
+    .stat .bar{ width:40px; height:6px; }
+
+    /* 立绘区 - 缩小并避免遮挡对话框 */
+    #portraits{ height:45%; padding:0 3%; }
+    .portrait{ max-width:38%; height:90%; }
+    .portrait.active{ filter:drop-shadow(0 0 10px rgba(212,168,76,0.5)); }
+
+    /* 对话框 */
+    #dialogueBox{
+      padding:10px 14px 14px; min-height:38vh;
+      padding-bottom:calc(14px + env(safe-area-inset-bottom));
+    }
+    #speakerName{ font-size:12px; padding:3px 12px; margin-left:8px; margin-bottom:4px; }
+    #dialogueText{ font-size:14px; line-height:1.6; min-height:50px; padding:4px 4px; }
+
+    /* 选项按钮 - 加大触控面积 */
+    #choices{ gap:6px; margin-top:8px; }
+    .choice{ padding:12px 14px; font-size:14px; border-radius:10px; min-height:44px; }
+    .choice:hover{ transform:none; }
+    .choice:active{ background:var(--mid); border-color:var(--gold); }
+    .choice .tag{ font-size:10px; }
+
+    /* 继续提示 */
+    #continueHint{ font-size:11px; }
+
+    /* 标题屏 */
+    #titleScreen{ padding:16px; }
+    #titleScreen .sub{ font-size:13px; margin-bottom:18px; letter-spacing:1px; }
+    .char-cards{ gap:14px; margin-bottom:20px; }
+    .char-card{ width:160px; padding:12px; }
+    .char-card .pic{ height:130px; }
+    .char-card h3{ font-size:15px; }
+    .char-card .tags{ font-size:10px; }
+    .char-card .quote{ font-size:10px; }
+    .char-card .skill{ font-size:10px; }
+    .start-btn{ padding:12px 36px; font-size:17px; letter-spacing:1px; }
+    .hint{ font-size:10px; margin-top:12px; }
+
+    /* 章节卡 */
+    #chapterCard .ch-num{ font-size:14px; letter-spacing:4px; }
+    #chapterCard .ch-line{ width:80px; margin:12px auto; }
+
+    /* 小知识弹窗 */
+    #factPop{ max-width:90vw; top:45%; }
+    #factPop .card{ padding:14px; }
+    #factPop h4{ font-size:16px; }
+    #factPop p{ font-size:13px; line-height:1.5; }
+    #factPop .close{ font-size:11px; }
+
+    /* 结局页 */
+    #endingScreen{ padding:20px; }
+    #endingScreen h2{ font-size:26px; }
+    #endingScreen .end-text{ font-size:14px; line-height:1.6; }
+    #endingScreen .scores{ gap:10px; flex-wrap:wrap; justify-content:center; }
+    #endingScreen .score-item{ padding:8px 12px; }
+    #endingScreen .score-item .v{ font-size:20px; }
+    #endingScreen .score-item .l{ font-size:10px; }
+    .replay-btn{ padding:10px 22px; font-size:14px; }
+  }
+
+  /* 小屏幕手机 (<390px) */
+  @media screen and (max-width: 390px){
+    #stats{ gap:3px; }
+    .stat{ padding:2px 5px; font-size:9px; }
+    .stat .bar{ width:32px; height:5px; }
+    #portraits{ height:40%; }
+    .portrait{ max-width:36%; }
+    #dialogueBox{ min-height:42vh; padding:8px 10px 12px; }
+    #dialogueText{ font-size:13px; line-height:1.5; }
+    .char-card{ width:140px; }
+    .char-card .pic{ height:110px; }
+    .char-card h3{ font-size:14px; }
+  }
+
+  /* 横屏模式优化 */
+  @media screen and (max-height: 500px) and (orientation: landscape){
+    #portraits{ height:30%; }
+    #dialogueBox{ min-height:50px; padding:8px 14px; }
+    #dialogueText{ font-size:13px; min-height:40px; }
+    #choices{ flex-direction:row; gap:6px; }
+    .choice{ flex:1; font-size:13px; padding:8px 12px; }
+    .char-card{ width:140px; }
+    .char-card .pic{ height:100px; }
+  }
 </style>
 </head>
 <body>
