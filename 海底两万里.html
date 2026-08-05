@@ -121,6 +121,7 @@
     border-top:3px solid var(--gold);
     padding:14px 22px 20px; min-height:30vh;
     box-shadow:0 -10px 40px rgba(0,0,0,0.6);
+    cursor:pointer;
   }
   #speakerName{
     display:inline-block; background:var(--gold); color:var(--ink);
@@ -855,18 +856,6 @@ function setScene(name){
     s.classList.toggle("active", s.dataset.scene===name);
   });
 }
-function getPortraitHTML(who){
-  const cap = who.charAt(0).toUpperCase()+who.slice(1);
-  const pngMap = { nemo:"nemo", aronnax:"aronnax", ned:"ned" };
-  const fname = pngMap[who] || who;
-  const img = new Image();
-  img.src = fname + ".png";
-  return `<img src="${fname}.png" alt="${who}"
-    onerror="this.onerror=null;this.replaceWith(document.createElementNS('http://www.w3.org/2000/svg','svg').outerHTML='')"
-    style="width:100%;height:100%;object-fit:contain"
-    onload="this._ok=true" />`
-    + `<svg style="display:none"><use href="#svg${cap}"/></svg>`;
-}
 function setPortrait(side, who, active){
   const el = side==="left"?pLeft:pRight;
   if(!who){ el.classList.remove("show","active","dim"); el.innerHTML=""; return; }
@@ -874,10 +863,18 @@ function setPortrait(side, who, active){
   const pngMap = { nemo:"nemo", aronnax:"aronnax", ned:"ned" };
   const fname = pngMap[who] || who;
   const imgSrc = fname + ".jpg";
-  el.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:contain"
-    onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
-    onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
+  el.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:contain;display:block" />
     <svg style="display:none;width:100%;height:100%"><use href="#svg${cap}"/></svg>`;
+  const img = el.querySelector("img");
+  const svg = el.querySelector("svg");
+  img.addEventListener("error", ()=>{
+    img.style.display = "none";
+    svg.style.display = "block";
+  });
+  img.addEventListener("load", ()=>{
+    img.style.display = "block";
+    svg.style.display = "none";
+  });
   el.classList.add("show");
   el.classList.toggle("active", active);
   el.classList.toggle("dim", !active);
@@ -1001,7 +998,8 @@ function renderChoices(list){
     const btn = document.createElement("button");
     btn.className = "choice";
     btn.innerHTML = c.text + (c.tag?`<span class="tag">${c.tag}</span>`:"");
-    btn.onclick = ()=>{
+    btn.onclick = (e)=>{
+      e.stopPropagation();
       applyEff(c.eff);
       renderNode(c.next);
     };
@@ -1024,10 +1022,14 @@ function showEnding(node){
 
 // 点击对话框推进
 $("dialogueBox").addEventListener("click", e=>{
-  if(e.target.classList.contains("choice")) return;
+  // 如果点击的是选项按钮或其子元素，不处理
+  let el = e.target;
+  while(el && el !== $("dialogueBox")){
+    if(el.classList && el.classList.contains("choice")) return;
+    el = el.parentElement;
+  }
   if(state.typing){
     skipType(STORY[state.node].text);
-    // 直接显示选项或继续提示
     const node = STORY[state.node];
     if(node.choices) renderChoices(node.choices);
     else if(node.next) continueHint.style.display="block";
@@ -1035,7 +1037,7 @@ $("dialogueBox").addEventListener("click", e=>{
   }
   const node = STORY[state.node];
   if(!node) return;
-  if(node.choices && node.choices.length) return; // 等选项
+  if(node.choices && node.choices.length) return;
   if(node.next){ renderNode(node.next); }
 });
 
@@ -1056,14 +1058,23 @@ $("replayBtn").addEventListener("click", ()=>{
 });
 
 // 角色卡片立绘
-$("cardNemo").innerHTML = `<img src="nemo.jpg" style="width:100%;height:100%;object-fit:contain"
-  onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
-  onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
-  <svg style="display:none;width:100%;height:100%"><use href="#svgNemo"/></svg>`;
-$("cardAronnax").innerHTML = `<img src="aronnax.jpg" style="width:100%;height:100%;object-fit:contain"
-  onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
-  onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
-  <svg style="display:none;width:100%;height:100%"><use href="#svgAronnax"/></svg>`;
+function setupCard(cardId, imgFile, svgId){
+  const card = $(cardId);
+  card.innerHTML = `<img src="${imgFile}" style="width:100%;height:100%;object-fit:contain;display:block" />
+    <svg style="display:none;width:100%;height:100%"><use href="#${svgId}"/></svg>`;
+  const img = card.querySelector("img");
+  const svg = card.querySelector("svg");
+  img.addEventListener("error", ()=>{
+    img.style.display = "none";
+    svg.style.display = "block";
+  });
+  img.addEventListener("load", ()=>{
+    img.style.display = "block";
+    svg.style.display = "none";
+  });
+}
+setupCard("cardNemo", "nemo.jpg", "svgNemo");
+setupCard("cardAronnax", "aronnax.jpg", "svgAronnax");
 
 // 生成气泡
 document.querySelectorAll(".bubbles").forEach(b=>{
@@ -1077,6 +1088,31 @@ document.querySelectorAll(".bubbles").forEach(b=>{
     el.style.animationDuration = (8+Math.random()*10)+"s";
     el.style.animationDelay = (Math.random()*10)+"s";
     b.appendChild(el);
+  }
+});
+
+// 键盘快捷键：空格/回车推进剧情
+document.addEventListener("keydown", e=>{
+  if(e.code==="Space" || e.code==="Enter"){
+    const ts = $("titleScreen");
+    if(ts.style.display !== "none" && ts.style.display !== "") return;
+    const es = $("endingScreen");
+    if(es.style.display === "flex") return;
+    const fc = $("factPop");
+    if(fc.classList.contains("show")) return;
+    e.preventDefault();
+    $("dialogueBox").click();
+  }
+});
+
+// 触摸/点击事件：确保立绘区域不会阻挡对话框
+document.addEventListener("click", e=>{
+  if(e.target.closest("#portraits")){
+    const db = $("dialogueBox");
+    if(db.style.display !== "none"){
+      const fakeEvent = new MouseEvent("click", {bubbles:true});
+      db.dispatchEvent(fakeEvent);
+    }
   }
 });
 
