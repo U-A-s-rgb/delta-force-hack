@@ -83,22 +83,24 @@
   #hud{
     position:absolute; top:0; left:0; right:0; z-index:30;
     display:flex; justify-content:space-between; align-items:center;
-    padding:10px 18px; background:linear-gradient(180deg,rgba(4,10,24,0.85),rgba(4,10,24,0));
-    pointer-events:none;
+    padding:10px 12px; background:linear-gradient(180deg,rgba(4,10,24,0.85),rgba(4,10,24,0));
+    pointer-events:none; gap:8px;
   }
   #chapterTag{
     background:rgba(10,30,58,0.8); border:1px solid var(--gold);
-    color:var(--gold); padding:5px 14px; border-radius:20px; font-size:13px; font-weight:bold;
+    color:var(--gold); padding:5px 12px; border-radius:20px; font-size:13px; font-weight:bold;
+    flex-shrink:0;
   }
-  #stats{ display:flex; gap:10px; }
+  #stats{ display:flex; gap:6px; flex-shrink:0; }
   .stat{
-    background:rgba(10,30,58,0.8); border-radius:14px; padding:4px 10px;
-    display:flex; align-items:center; gap:6px; font-size:12px;
+    background:rgba(10,30,58,0.8); border-radius:14px; padding:4px 8px;
+    display:flex; align-items:center; gap:4px; font-size:12px;
     border:1px solid rgba(255,255,255,0.15);
   }
-  .stat .ic{ font-size:16px; }
-  .stat .bar{ width:60px; height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
+  .stat .ic{ font-size:16px; flex-shrink:0; }
+  .stat .bar{ width:50px; height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
   .stat .fill{ height:100%; border-radius:4px; transition:width .5s; }
+  .stat .val{ font-size:11px; color:var(--cream); font-weight:bold; min-width:18px; text-align:right; }
   #curiosity .fill{ background:var(--teal); }
   #trust .fill{ background:var(--gold); }
   #knowledge .fill{ background:var(--coral); }
@@ -170,7 +172,7 @@
     letter-spacing:4px; margin-bottom:6px;
   }
   #titleScreen .sub{ color:var(--teal); font-size:16px; margin-bottom:30px; letter-spacing:2px; }
-  .char-cards{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin-bottom:30px; }
+  .char-cards{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin-bottom:20px; }
   .char-card{
     background:rgba(10,30,58,0.7); border:2px solid var(--mid); border-radius:16px;
     padding:16px; width:230px; backdrop-filter:blur(4px);
@@ -188,7 +190,7 @@
     font-family:inherit; letter-spacing:2px;
   }
   .start-btn:hover{ transform:scale(1.05); }
-  .hint{ color:rgba(255,255,255,0.4); font-size:12px; margin-top:18px; }
+  .hint{ color:rgba(255,255,255,0.4); font-size:12px; margin-top:12px; }
 
   /* 章节卡 */
   #chapterCard{
@@ -203,24 +205,24 @@
   }
   #chapterCard .ch-line{ width:120px; height:2px; background:var(--gold); margin:18px auto; }
 
-  /* 教育小知识弹窗 */
+  /* 教育小知识弹窗 - 改为顶部通知条样式 */
   #factPop{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8);
-    z-index:80; max-width:440px; opacity:0; pointer-events:none; transition:all .4s;
+    position:absolute; top:60px; left:50%; transform:translateX(-50%) translateY(-20px);
+    z-index:80; width:90%; max-width:420px; opacity:0; pointer-events:none; transition:all .4s;
   }
-  #factPop.show{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; cursor:pointer; }
+  #factPop.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; cursor:pointer; }
   #factPop .card{
     background:linear-gradient(135deg,var(--paper),#f5e8cc); color:var(--ink);
-    border:3px solid var(--gold); border-radius:18px; padding:20px;
+    border:3px solid var(--gold); border-radius:18px; padding:16px 20px;
     box-shadow:0 10px 40px rgba(0,0,0,0.6);
   }
   #factPop .badge{
     display:inline-block; background:var(--coral); color:#fff; font-size:11px;
     padding:3px 12px; border-radius:10px; margin-bottom:8px;
   }
-  #factPop h4{ color:var(--mid); font-size:18px; margin-bottom:8px; }
+  #factPop h4{ color:var(--mid); font-size:18px; margin-bottom:6px; }
   #factPop p{ font-size:14px; line-height:1.6; }
-  #factPop .close{ margin-top:12px; text-align:center; color:var(--gold); font-size:13px; }
+  #factPop .close{ margin-top:10px; text-align:center; color:var(--gold); font-size:12px; }
 
   /* 结局 */
   #endingScreen{
@@ -242,28 +244,28 @@
 
   /* ===== 移动端适配 ===== */
   @media screen and (max-width: 768px){
-    /* 顶部状态栏 */
-    #hud{ padding:6px 10px; flex-wrap:wrap; gap:6px; }
-    #chapterTag{ font-size:11px; padding:3px 10px; order:1; }
-    #stats{ gap:4px; order:2; width:100%; justify-content:space-between; }
-    .stat{ padding:3px 7px; font-size:10px; gap:3px; }
+    /* 顶部状态栏 - 更紧凑 */
+    #hud{ padding:6px 8px; gap:4px; }
+    #chapterTag{ font-size:10px; padding:3px 8px; }
+    #stats{ gap:3px; }
+    .stat{ padding:3px 5px; font-size:10px; gap:2px; }
     .stat .ic{ font-size:13px; }
-    .stat .bar{ width:40px; height:6px; }
+    .stat .bar{ width:32px; height:6px; }
+    .stat .val{ font-size:10px; min-width:14px; }
 
-    /* 立绘区 - 缩小并避免遮挡对话框 */
-    #portraits{ height:45%; padding:0 3%; }
-    .portrait{ max-width:38%; height:90%; }
-    .portrait.active{ filter:drop-shadow(0 0 10px rgba(212,168,76,0.5)); }
+    /* 立绘区 - 缩小，不遮挡对话框 */
+    #portraits{ height:42%; padding:0 2%; }
+    .portrait{ max-width:36%; height:88%; }
 
     /* 对话框 */
     #dialogueBox{
-      padding:10px 14px 14px; min-height:38vh;
+      padding:10px 12px 14px; min-height:40vh;
       padding-bottom:calc(14px + env(safe-area-inset-bottom));
     }
-    #speakerName{ font-size:12px; padding:3px 12px; margin-left:8px; margin-bottom:4px; }
-    #dialogueText{ font-size:14px; line-height:1.6; min-height:50px; padding:4px 4px; }
+    #speakerName{ font-size:12px; padding:3px 12px; margin-left:6px; margin-bottom:4px; }
+    #dialogueText{ font-size:14px; line-height:1.6; min-height:50px; padding:4px 2px; }
 
-    /* 选项按钮 - 加大触控面积 */
+    /* 选项按钮 - 加大触控 */
     #choices{ gap:6px; margin-top:8px; }
     .choice{ padding:12px 14px; font-size:14px; border-radius:10px; min-height:44px; }
     .choice:hover{ transform:none; }
@@ -273,28 +275,29 @@
     /* 继续提示 */
     #continueHint{ font-size:11px; }
 
-    /* 标题屏 */
-    #titleScreen{ padding:16px; }
-    #titleScreen .sub{ font-size:13px; margin-bottom:18px; letter-spacing:1px; }
-    .char-cards{ gap:14px; margin-bottom:20px; }
-    .char-card{ width:160px; padding:12px; }
-    .char-card .pic{ height:130px; }
-    .char-card h3{ font-size:15px; }
-    .char-card .tags{ font-size:10px; }
+    /* 标题屏 - 紧凑布局 */
+    #titleScreen{ padding:12px; justify-content:flex-start; padding-top:30px; }
+    #titleScreen h1{ margin-bottom:4px; }
+    #titleScreen .sub{ font-size:13px; margin-bottom:14px; letter-spacing:1px; }
+    .char-cards{ gap:10px; margin-bottom:14px; }
+    .char-card{ width:44%; padding:10px; }
+    .char-card .pic{ height:100px; margin-bottom:6px; }
+    .char-card h3{ font-size:14px; margin-bottom:3px; }
+    .char-card .tags{ font-size:10px; margin-bottom:3px; }
     .char-card .quote{ font-size:10px; }
-    .char-card .skill{ font-size:10px; }
-    .start-btn{ padding:12px 36px; font-size:17px; letter-spacing:1px; }
-    .hint{ font-size:10px; margin-top:12px; }
+    .char-card .skill{ font-size:10px; margin-top:2px; }
+    .start-btn{ padding:12px 32px; font-size:17px; letter-spacing:1px; }
+    .hint{ font-size:10px; margin-top:10px; }
 
     /* 章节卡 */
     #chapterCard .ch-num{ font-size:14px; letter-spacing:4px; }
-    #chapterCard .ch-line{ width:80px; margin:12px auto; }
+    #chapterCard .ch-line{ width:80px; margin:10px auto; }
 
-    /* 小知识弹窗 */
-    #factPop{ max-width:90vw; top:45%; }
-    #factPop .card{ padding:14px; }
-    #factPop h4{ font-size:16px; }
-    #factPop p{ font-size:13px; line-height:1.5; }
+    /* 小知识弹窗 - 顶部通知样式 */
+    #factPop{ top:55px; width:92%; }
+    #factPop .card{ padding:12px 14px; }
+    #factPop h4{ font-size:15px; }
+    #factPop p{ font-size:12px; line-height:1.5; }
     #factPop .close{ font-size:11px; }
 
     /* 结局页 */
@@ -308,29 +311,30 @@
     .replay-btn{ padding:10px 22px; font-size:14px; }
   }
 
-  /* 小屏幕手机 (<390px) */
+  /* 小屏手机 (<390px) */
   @media screen and (max-width: 390px){
-    #stats{ gap:3px; }
-    .stat{ padding:2px 5px; font-size:9px; }
-    .stat .bar{ width:32px; height:5px; }
-    #portraits{ height:40%; }
-    .portrait{ max-width:36%; }
-    #dialogueBox{ min-height:42vh; padding:8px 10px 12px; }
+    #stats{ gap:2px; }
+    .stat{ padding:2px 4px; }
+    .stat .bar{ width:26px; height:5px; }
+    .stat .val{ font-size:9px; min-width:12px; }
+    #portraits{ height:38%; }
+    .portrait{ max-width:34%; }
+    #dialogueBox{ min-height:44vh; padding:8px 10px 12px; }
     #dialogueText{ font-size:13px; line-height:1.5; }
-    .char-card{ width:140px; }
-    .char-card .pic{ height:110px; }
-    .char-card h3{ font-size:14px; }
+    .char-card{ width:46%; padding:8px; }
+    .char-card .pic{ height:85px; }
+    .char-card h3{ font-size:13px; }
   }
 
-  /* 横屏模式优化 */
+  /* 横屏模式 */
   @media screen and (max-height: 500px) and (orientation: landscape){
-    #portraits{ height:30%; }
-    #dialogueBox{ min-height:50px; padding:8px 14px; }
-    #dialogueText{ font-size:13px; min-height:40px; }
+    #portraits{ height:28%; }
+    #dialogueBox{ min-height:44px; padding:6px 14px; }
+    #dialogueText{ font-size:13px; min-height:36px; }
     #choices{ flex-direction:row; gap:6px; }
     .choice{ flex:1; font-size:13px; padding:8px 12px; }
     .char-card{ width:140px; }
-    .char-card .pic{ height:100px; }
+    .char-card .pic{ height:90px; }
   }
 </style>
 </head>
@@ -365,9 +369,9 @@
   <div id="hud">
     <div id="chapterTag">序章</div>
     <div id="stats">
-      <div class="stat" id="curiosity"><span class="ic">🔭</span><div class="bar"><div class="fill" style="width:30%"></div></div></div>
-      <div class="stat" id="trust"><span class="ic">⚓</span><div class="bar"><div class="fill" style="width:20%"></div></div></div>
-      <div class="stat" id="knowledge"><span class="ic">📖</span><div class="bar"><div class="fill" style="width:10%"></div></div></div>
+      <div class="stat" id="curiosity"><span class="ic">🔭</span><div class="bar"><div class="fill" style="width:30%"></div></div><span class="val">30</span></div>
+      <div class="stat" id="trust"><span class="ic">⚓</span><div class="bar"><div class="fill" style="width:20%"></div></div><span class="val">20</span></div>
+      <div class="stat" id="knowledge"><span class="ic">📖</span><div class="bar"><div class="fill" style="width:10%"></div></div><span class="val">10</span></div>
     </div>
   </div>
 
@@ -974,9 +978,15 @@ function setPortrait(side, who, active){
   el.classList.toggle("dim", !active);
 }
 function updateStats(){
-  $("curiosity").querySelector(".fill").style.width = Math.min(100,state.curiosity)+"%";
-  $("trust").querySelector(".fill").style.width = Math.min(100,state.trust)+"%";
-  $("knowledge").querySelector(".fill").style.width = Math.min(100,state.knowledge)+"%";
+  const cv = Math.min(100,state.curiosity);
+  const tv = Math.min(100,state.trust);
+  const kv = Math.min(100,state.knowledge);
+  $("curiosity").querySelector(".fill").style.width = cv+"%";
+  $("trust").querySelector(".fill").style.width = tv+"%";
+  $("knowledge").querySelector(".fill").style.width = kv+"%";
+  $("curiosity").querySelector(".val").textContent = cv;
+  $("trust").querySelector(".val").textContent = tv;
+  $("knowledge").querySelector(".val").textContent = kv;
 }
 function applyEff(eff){
   if(!eff) return;
