@@ -91,16 +91,16 @@
     color:var(--gold); padding:5px 12px; border-radius:20px; font-size:13px; font-weight:bold;
     flex-shrink:0;
   }
-  #stats{ display:flex; gap:6px; flex-shrink:0; }
+  #stats{ display:flex; gap:6px; flex:1 1 auto; justify-content:flex-end; min-width:0; }
   .stat{
     background:rgba(10,30,58,0.8); border-radius:14px; padding:4px 8px;
     display:flex; align-items:center; gap:4px; font-size:12px;
-    border:1px solid rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.15); flex-shrink:1; min-width:0;
   }
   .stat .ic{ font-size:16px; flex-shrink:0; }
   .stat .bar{ width:50px; height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
   .stat .fill{ height:100%; border-radius:4px; transition:width .5s; }
-  .stat .val{ font-size:11px; color:var(--cream); font-weight:bold; min-width:18px; text-align:right; }
+  .stat .val{ font-size:11px; color:var(--cream); font-weight:bold; min-width:18px; text-align:right; flex-shrink:0; }
   #curiosity .fill{ background:var(--teal); }
   #trust .fill{ background:var(--gold); }
   #knowledge .fill{ background:var(--coral); }
@@ -164,15 +164,15 @@
     position:absolute; inset:0; z-index:100;
     background:radial-gradient(ellipse at center,#0a2a4a 0%,#04122a 70%,#020a1a 100%);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:20px;
+    text-align:center; padding:20px; overflow-y:auto;
   }
   #titleScreen h1{
     font-size:clamp(36px,7vw,68px); color:var(--cream);
     text-shadow:0 0 20px var(--light),0 4px 8px rgba(0,0,0,0.8);
     letter-spacing:4px; margin-bottom:6px;
   }
-  #titleScreen .sub{ color:var(--teal); font-size:16px; margin-bottom:30px; letter-spacing:2px; }
-  .char-cards{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin-bottom:20px; }
+  #titleScreen .sub{ color:var(--teal); font-size:16px; margin-bottom:20px; letter-spacing:2px; }
+  .char-cards{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin-bottom:16px; }
   .char-card{
     background:rgba(10,30,58,0.7); border:2px solid var(--mid); border-radius:16px;
     padding:16px; width:230px; backdrop-filter:blur(4px);
@@ -187,10 +187,10 @@
     background:linear-gradient(135deg,var(--gold),#b8902c); color:var(--ink);
     border:none; padding:14px 50px; font-size:20px; font-weight:bold; border-radius:30px;
     cursor:pointer; box-shadow:0 6px 20px rgba(212,168,76,0.5); transition:transform .2s;
-    font-family:inherit; letter-spacing:2px;
+    font-family:inherit; letter-spacing:2px; margin-top:-10px;
   }
   .start-btn:hover{ transform:scale(1.05); }
-  .hint{ color:rgba(255,255,255,0.4); font-size:12px; margin-top:12px; }
+  .hint{ color:rgba(255,255,255,0.4); font-size:12px; margin-top:10px; }
 
   /* 章节卡 */
   #chapterCard{
@@ -205,24 +205,33 @@
   }
   #chapterCard .ch-line{ width:120px; height:2px; background:var(--gold); margin:18px auto; }
 
-  /* 教育小知识弹窗 - 改为顶部通知条样式 */
+  /* 教育小知识弹窗 - 顶部通知条样式 */
   #factPop{
-    position:absolute; top:60px; left:50%; transform:translateX(-50%) translateY(-20px);
-    z-index:80; width:90%; max-width:420px; opacity:0; pointer-events:none; transition:all .4s;
+    position:absolute; top:70px; left:50%; transform:translateX(-50%) translateY(-30px);
+    z-index:80; width:92%; max-width:460px; opacity:0; pointer-events:none; transition:all .4s;
   }
   #factPop.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; cursor:pointer; }
   #factPop .card{
     background:linear-gradient(135deg,var(--paper),#f5e8cc); color:var(--ink);
-    border:3px solid var(--gold); border-radius:18px; padding:16px 20px;
+    border:3px solid var(--gold); border-radius:18px; padding:14px 18px;
     box-shadow:0 10px 40px rgba(0,0,0,0.6);
   }
   #factPop .badge{
     display:inline-block; background:var(--coral); color:#fff; font-size:11px;
-    padding:3px 12px; border-radius:10px; margin-bottom:8px;
+    padding:3px 12px; border-radius:10px; margin-bottom:6px;
   }
-  #factPop h4{ color:var(--mid); font-size:18px; margin-bottom:6px; }
+  #factPop h4{ color:var(--mid); font-size:16px; margin-bottom:4px; }
   #factPop p{ font-size:14px; line-height:1.6; }
-  #factPop .close{ margin-top:10px; text-align:center; color:var(--gold); font-size:12px; }
+  #factPop .close{ margin-top:8px; text-align:center; color:var(--gold); font-size:12px; }
+
+  /* 右上角关闭按钮 */
+  #factPop .x-close{
+    position:absolute; top:-8px; right:-8px; width:26px; height:26px;
+    background:var(--coral); color:#fff; border:2px solid var(--gold);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:bold; cursor:pointer; line-height:1;
+    box-shadow:0 3px 10px rgba(0,0,0,0.4);
+  }
 
   /* 结局 */
   #endingScreen{
@@ -245,13 +254,13 @@
   /* ===== 移动端适配 ===== */
   @media screen and (max-width: 768px){
     /* 顶部状态栏 - 更紧凑 */
-    #hud{ padding:6px 8px; gap:4px; }
-    #chapterTag{ font-size:10px; padding:3px 8px; }
-    #stats{ gap:3px; }
-    .stat{ padding:3px 5px; font-size:10px; gap:2px; }
+    #hud{ padding:5px 6px; gap:4px; }
+    #chapterTag{ font-size:10px; padding:2px 7px; letter-spacing:0; }
+    #stats{ gap:2px; flex:1; }
+    .stat{ padding:2px 4px; font-size:10px; gap:2px; border-radius:10px; }
     .stat .ic{ font-size:13px; }
-    .stat .bar{ width:32px; height:6px; }
-    .stat .val{ font-size:10px; min-width:14px; }
+    .stat .bar{ width:26px; height:5px; }
+    .stat .val{ font-size:10px; min-width:12px; }
 
     /* 立绘区 - 缩小，不遮挡对话框 */
     #portraits{ height:42%; padding:0 2%; }
@@ -276,29 +285,33 @@
     #continueHint{ font-size:11px; }
 
     /* 标题屏 - 紧凑布局 */
-    #titleScreen{ padding:12px; justify-content:flex-start; padding-top:30px; }
-    #titleScreen h1{ margin-bottom:4px; }
-    #titleScreen .sub{ font-size:13px; margin-bottom:14px; letter-spacing:1px; }
-    .char-cards{ gap:10px; margin-bottom:14px; }
-    .char-card{ width:44%; padding:10px; }
-    .char-card .pic{ height:100px; margin-bottom:6px; }
-    .char-card h3{ font-size:14px; margin-bottom:3px; }
-    .char-card .tags{ font-size:10px; margin-bottom:3px; }
-    .char-card .quote{ font-size:10px; }
-    .char-card .skill{ font-size:10px; margin-top:2px; }
-    .start-btn{ padding:12px 32px; font-size:17px; letter-spacing:1px; }
-    .hint{ font-size:10px; margin-top:10px; }
+    #titleScreen{ padding:10px 12px; justify-content:flex-start; padding-top:24px; overflow-y:auto; }
+    #titleScreen h1{ margin-bottom:4px; letter-spacing:2px; }
+    #titleScreen .sub{ font-size:12px; margin-bottom:10px; letter-spacing:1px; }
+    .char-cards{ gap:8px; margin-bottom:8px; flex-direction:column; width:100%; max-width:320px; }
+    .char-card{ width:100%; padding:8px 10px; display:flex; gap:10px; align-items:center; }
+    .char-card .pic{ width:70px; height:70px; flex-shrink:0; margin-bottom:0; }
+    .char-card > h3, .char-card > .tags, .char-card > .quote, .char-card > .skill{
+      padding:0; margin:0; text-align:left;
+    }
+    .char-card h3{ font-size:14px; margin-bottom:2px; }
+    .char-card .tags{ font-size:10px; margin-bottom:2px; }
+    .char-card .quote{ font-size:10px; line-height:1.3; }
+    .char-card .skill{ font-size:10px; margin-top:2px; line-height:1.3; }
+    .start-btn{ padding:12px 36px; font-size:16px; letter-spacing:1px; margin-top:8px; }
+    .hint{ font-size:10px; margin-top:6px; }
 
     /* 章节卡 */
     #chapterCard .ch-num{ font-size:14px; letter-spacing:4px; }
     #chapterCard .ch-line{ width:80px; margin:10px auto; }
 
     /* 小知识弹窗 - 顶部通知样式 */
-    #factPop{ top:55px; width:92%; }
+    #factPop{ top:60px; width:94%; }
     #factPop .card{ padding:12px 14px; }
     #factPop h4{ font-size:15px; }
     #factPop p{ font-size:12px; line-height:1.5; }
     #factPop .close{ font-size:11px; }
+    #factPop .x-close{ width:22px; height:22px; font-size:12px; top:-6px; right:-6px; }
 
     /* 结局页 */
     #endingScreen{ padding:20px; }
@@ -313,16 +326,19 @@
 
   /* 小屏手机 (<390px) */
   @media screen and (max-width: 390px){
+    #hud{ padding:4px 5px; gap:3px; }
+    #chapterTag{ font-size:9px; padding:2px 6px; }
     #stats{ gap:2px; }
-    .stat{ padding:2px 4px; }
-    .stat .bar{ width:26px; height:5px; }
-    .stat .val{ font-size:9px; min-width:12px; }
+    .stat{ padding:2px 3px; }
+    .stat .ic{ font-size:12px; }
+    .stat .bar{ width:22px; height:5px; }
+    .stat .val{ font-size:9px; min-width:11px; }
     #portraits{ height:38%; }
     .portrait{ max-width:34%; }
     #dialogueBox{ min-height:44vh; padding:8px 10px 12px; }
     #dialogueText{ font-size:13px; line-height:1.5; }
-    .char-card{ width:46%; padding:8px; }
-    .char-card .pic{ height:85px; }
+    .char-card{ width:100%; padding:6px 8px; }
+    .char-card .pic{ width:60px; height:60px; }
     .char-card h3{ font-size:13px; }
   }
 
@@ -383,6 +399,7 @@
 
   <!-- 教育小知识 -->
   <div id="factPop"><div class="card">
+    <span class="x-close" id="factCloseBtn">×</span>
     <span class="badge">🔬 海洋小知识</span>
     <h4 id="factTitle"></h4>
     <p id="factText"></p>
@@ -1040,10 +1057,13 @@ function showFact(f){
   $("factText").textContent = f.text;
   const pop = $("factPop");
   pop.classList.add("show");
-  const close = ()=>{ pop.classList.remove("show"); pop.removeEventListener("click",close); 
-    // 显示 fact 后继续到当前节点对话
+  const close = ()=>{ pop.classList.remove("show");
+    pop.removeEventListener("click",close);
+    $("factCloseBtn").removeEventListener("click", btnClose);
     renderNode(state.node, true);
   };
+  const btnClose = (e)=>{ e.stopPropagation(); close(); };
+  $("factCloseBtn").addEventListener("click", btnClose);
   pop.addEventListener("click", close);
 }
 
