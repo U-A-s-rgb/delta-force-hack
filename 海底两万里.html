@@ -112,7 +112,7 @@
   .portrait.show{ opacity:1; transform:translateY(0); }
   .portrait.active{ filter:drop-shadow(0 0 18px rgba(212,168,76,0.5)); }
   .portrait.dim{ filter:brightness(0.6) saturate(0.7); transform:translateY(10px) scale(0.95); }
-  .portrait svg{ width:100%; height:100%; }
+  .portrait svg, .portrait img{ width:100%; height:100%; object-fit:contain; }
 
   /* ===== 对话框 ===== */
   #dialogueBox{
@@ -174,7 +174,7 @@
     padding:16px; width:230px; backdrop-filter:blur(4px);
   }
   .char-card .pic{ height:180px; margin-bottom:10px; }
-  .char-card .pic svg{ width:100%; height:100%; }
+  .char-card .pic svg, .char-card .pic img{ width:100%; height:100%; object-fit:contain; }
   .char-card h3{ color:var(--gold); font-size:18px; margin-bottom:6px; }
   .char-card .tags{ font-size:12px; color:var(--teal); margin-bottom:6px; }
   .char-card .quote{ font-size:12px; color:var(--cream); font-style:italic; }
@@ -855,10 +855,29 @@ function setScene(name){
     s.classList.toggle("active", s.dataset.scene===name);
   });
 }
+function getPortraitHTML(who){
+  const cap = who.charAt(0).toUpperCase()+who.slice(1);
+  const pngMap = { nemo:"nemo", aronnax:"aronnax", ned:"ned" };
+  const fname = pngMap[who] || who;
+  const img = new Image();
+  img.src = fname + ".png";
+  return `<img src="${fname}.png" alt="${who}"
+    onerror="this.onerror=null;this.replaceWith(document.createElementNS('http://www.w3.org/2000/svg','svg').outerHTML='')"
+    style="width:100%;height:100%;object-fit:contain"
+    onload="this._ok=true" />`
+    + `<svg style="display:none"><use href="#svg${cap}"/></svg>`;
+}
 function setPortrait(side, who, active){
   const el = side==="left"?pLeft:pRight;
   if(!who){ el.classList.remove("show","active","dim"); el.innerHTML=""; return; }
-  el.innerHTML = `<svg><use href="#svg${who.charAt(0).toUpperCase()+who.slice(1)}"/></svg>`;
+  const cap = who.charAt(0).toUpperCase()+who.slice(1);
+  const pngMap = { nemo:"nemo", aronnax:"aronnax", ned:"ned" };
+  const fname = pngMap[who] || who;
+  const imgSrc = fname + ".png";
+  el.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:contain"
+    onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+    onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
+    <svg style="display:none;width:100%;height:100%"><use href="#svg${cap}"/></svg>`;
   el.classList.add("show");
   el.classList.toggle("active", active);
   el.classList.toggle("dim", !active);
@@ -1037,8 +1056,14 @@ $("replayBtn").addEventListener("click", ()=>{
 });
 
 // 角色卡片立绘
-$("cardNemo").innerHTML = '<svg viewBox="0 0 200 320"><use href="#svgNemo"/></svg>';
-$("cardAronnax").innerHTML = '<svg viewBox="0 0 200 320"><use href="#svgAronnax"/></svg>';
+$("cardNemo").innerHTML = `<img src="nemo.png" style="width:100%;height:100%;object-fit:contain"
+  onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+  onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
+  <svg style="display:none;width:100%;height:100%"><use href="#svgNemo"/></svg>`;
+$("cardAronnax").innerHTML = `<img src="aronnax.png" style="width:100%;height:100%;object-fit:contain"
+  onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+  onload="this.style.display='block';this.nextElementSibling.style.display='none'" />
+  <svg style="display:none;width:100%;height:100%"><use href="#svgAronnax"/></svg>`;
 
 // 生成气泡
 document.querySelectorAll(".bubbles").forEach(b=>{
