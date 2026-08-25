@@ -2,14 +2,1249 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>海底两万里 · 海洋探险</title>
-<meta http-equiv="refresh" content="0; url=海底两万里.html">
 <style>
-  body { margin:0; background:#06142a; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; color:#d4a84c; font-size:18px; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root{
+    --deep:#0a1e3a; --deep2:#06142a; --mid:#16385f; --light:#2a6fb5;
+    --gold:#d4a84c; --silver:#c8d4e0; --cream:#f0e3c8; --sand:#d4b896;
+    --ink:#0d1b2a; --paper:#fbf5e6; --coral:#ff7a6b; --teal:#3fb8af;
+  }
+  body{
+    font-family:"Comic Sans MS","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--deep2); color:#eaf2ff; overflow:hidden; height:100vh;
+    user-select:none; -webkit-tap-highlight-color:transparent;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  /* ===== 舞台 ===== */
+  #stage{ position:relative; width:100vw; height:100vh; overflow:hidden; }
+
+  /* ===== 场景背景 ===== */
+  .scene{ position:absolute; inset:0; transition:opacity 1s ease; opacity:0; }
+  .scene.active{ opacity:1; }
+  .scene-surface{
+    background:linear-gradient(180deg,#5ba8e0 0%,#2a6fb5 45%,#16385f 100%);
+  }
+  .scene-storm{
+    background:linear-gradient(180deg,#1a2a40 0%,#0d1b2a 60%,#06142a 100%);
+  }
+  .scene-sub{
+    background:linear-gradient(180deg,#0d2240 0%,#081830 50%,#040e20 100%);
+  }
+  .scene-forest{
+    background:linear-gradient(180deg,#0a3a5c 0%,#062a4a 40%,#04203a 100%);
+  }
+  .scene-ice{
+    background:linear-gradient(180deg,#8fc4e8 0%,#4a8bc0 40%,#1a4a70 100%);
+  }
+  .scene-ending{
+    background:linear-gradient(180deg,#1a3a6a 0%,#0a2348 50%,#04122a 100%);
+  }
+
+  /* 太阳/光斑 */
+  .sun{
+    position:absolute; top:8%; right:12%; width:90px; height:90px; border-radius:50%;
+    background:radial-gradient(circle,#fff6cf 0%,#ffe27a 50%,rgba(255,226,122,0) 75%);
+    filter:blur(1px);
+  }
+  .light-rays{
+    position:absolute; top:-10%; left:30%; width:40%; height:80%;
+    background:linear-gradient(180deg,rgba(255,255,200,0.18),rgba(255,255,200,0));
+    transform:skewX(-12deg); pointer-events:none;
+  }
+
+  /* 气泡 */
+  .bubbles{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .bubble{
+    position:absolute; bottom:-30px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.6),rgba(255,255,255,0.05));
+    border:1px solid rgba(255,255,255,0.2);
+    animation:rise linear infinite;
+  }
+  @keyframes rise{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    10%{ opacity:0.7; }
+    90%{ opacity:0.5; }
+    100%{ transform:translateY(-105vh) translateX(20px); opacity:0; }
+  }
+
+  /* 海面波浪 */
+  .waves{ position:absolute; bottom:30%; width:200%; height:80px; left:-50%;
+    background:repeating-linear-gradient(90deg,transparent 0,transparent 40px,rgba(255,255,255,0.08) 40px,rgba(255,255,255,0.08) 80px);
+    animation:wave 8s linear infinite;
+  }
+  @keyframes wave{ from{ transform:translateX(0);} to{ transform:translateX(-80px);} }
+
+  /* 珊瑚剪影 */
+  .coral{ position:absolute; bottom:0; width:100%; height:35%; pointer-events:none; }
+
+  /* ===== 顶部状态栏 ===== */
+  #hud{
+    position:absolute; top:0; left:0; right:0; z-index:30;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 12px; background:linear-gradient(180deg,rgba(4,10,24,0.85),rgba(4,10,24,0));
+    pointer-events:none; gap:8px;
+  }
+  #chapterTag{
+    background:rgba(10,30,58,0.8); border:1px solid var(--gold);
+    color:var(--gold); padding:5px 12px; border-radius:20px; font-size:13px; font-weight:bold;
+    flex-shrink:0;
+  }
+  #stats{ display:flex; gap:6px; flex:1 1 auto; justify-content:flex-end; min-width:0; }
+  .stat{
+    background:rgba(10,30,58,0.8); border-radius:14px; padding:4px 8px;
+    display:flex; align-items:center; gap:4px; font-size:12px;
+    border:1px solid rgba(255,255,255,0.15); flex-shrink:1; min-width:0;
+  }
+  .stat .ic{ font-size:16px; flex-shrink:0; }
+  .stat .bar{ width:50px; height:8px; background:rgba(255,255,255,0.15); border-radius:4px; overflow:hidden; }
+  .stat .fill{ height:100%; border-radius:4px; transition:width .5s; }
+  .stat .val{ font-size:11px; color:var(--cream); font-weight:bold; min-width:18px; text-align:right; flex-shrink:0; }
+  #curiosity .fill{ background:var(--teal); }
+  #trust .fill{ background:var(--gold); }
+  #knowledge .fill{ background:var(--coral); }
+
+  /* ===== 立绘 ===== */
+  #portraits{
+    position:absolute; bottom:0; left:0; right:0; height:62%; z-index:10;
+    display:flex; justify-content:space-between; align-items:flex-end; padding:0 2%;
+    pointer-events:none;
+  }
+  .portrait{ height:95%; max-width:42%; transition:all .5s ease; opacity:0; transform:translateY(20px); }
+  .portrait.show{ opacity:1; transform:translateY(0); }
+  .portrait.active{ filter:drop-shadow(0 0 18px rgba(212,168,76,0.5)); }
+  .portrait.dim{ filter:brightness(0.6) saturate(0.7); transform:translateY(10px) scale(0.95); }
+  .portrait svg, .portrait img{ width:100%; height:100%; object-fit:contain; }
+
+  /* ===== 对话框 ===== */
+  #dialogueBox{
+    position:absolute; bottom:0; left:0; right:0; z-index:20;
+    background:linear-gradient(180deg,rgba(8,20,40,0.92),rgba(4,12,28,0.98));
+    border-top:3px solid var(--gold);
+    padding:14px 22px 20px; min-height:30vh;
+    box-shadow:0 -10px 40px rgba(0,0,0,0.6);
+    cursor:pointer;
+  }
+  #speakerName{
+    display:inline-block; background:var(--gold); color:var(--ink);
+    padding:4px 18px; border-radius:0 0 14px 14px; font-weight:bold; font-size:15px;
+    margin-bottom:8px; margin-left:14px;
+  }
+  #speakerName.nemo{ background:var(--mid); color:var(--silver); border:1px solid var(--gold); }
+  #speakerName.aronnax{ background:var(--cream); color:var(--ink); }
+  #speakerName.ned{ background:var(--coral); color:#fff; }
+  #speakerName.narrator{ background:var(--silver); color:var(--ink); }
+  #dialogueText{
+    font-size:17px; line-height:1.7; min-height:60px; padding:6px 8px;
+    color:#eaf2ff; text-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+  #dialogueText .cursor{ animation:blink 0.8s infinite; color:var(--gold); }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* 选项 */
+  #choices{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .choice{
+    background:rgba(22,56,95,0.7); border:2px solid var(--light); color:#eaf2ff;
+    padding:10px 16px; border-radius:12px; cursor:pointer; font-size:15px;
+    transition:all .2s; text-align:left; font-family:inherit;
+  }
+  .choice:hover{ background:var(--mid); border-color:var(--gold); transform:translateX(6px); }
+  .choice .tag{ font-size:11px; color:var(--teal); margin-left:8px; }
+
+  /* 继续提示 */
+  #continueHint{
+    text-align:right; color:var(--gold); font-size:13px; margin-top:6px; opacity:0.7;
+    animation:pulse 1.4s infinite;
+  }
+  @keyframes pulse{ 50%{ opacity:0.3; } }
+
+  /* ===== 标题屏 ===== */
+  #titleScreen{
+    position:absolute; inset:0; z-index:100;
+    background:radial-gradient(ellipse at center,#0a2a4a 0%,#04122a 70%,#020a1a 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:20px; overflow-y:auto;
+  }
+  #titleScreen h1{
+    font-size:clamp(36px,7vw,68px); color:var(--cream);
+    text-shadow:0 0 20px var(--light),0 4px 8px rgba(0,0,0,0.8);
+    letter-spacing:4px; margin-bottom:6px;
+  }
+  #titleScreen .sub{ color:var(--teal); font-size:16px; margin-bottom:20px; letter-spacing:2px; }
+  .char-cards{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin-bottom:16px; }
+  .char-card{
+    background:rgba(10,30,58,0.7); border:2px solid var(--mid); border-radius:16px;
+    padding:16px; width:230px; backdrop-filter:blur(4px);
+  }
+  .char-card .pic{ height:180px; margin-bottom:10px; }
+  .char-card .pic svg, .char-card .pic img{ width:100%; height:100%; object-fit:contain; }
+  .char-card h3{ color:var(--gold); font-size:18px; margin-bottom:6px; }
+  .char-card .tags{ font-size:12px; color:var(--teal); margin-bottom:6px; }
+  .char-card .quote{ font-size:12px; color:var(--cream); font-style:italic; }
+  .char-card .skill{ font-size:11px; color:var(--silver); margin-top:4px; }
+  .start-btn{
+    background:linear-gradient(135deg,var(--gold),#b8902c); color:var(--ink);
+    border:none; padding:14px 50px; font-size:20px; font-weight:bold; border-radius:30px;
+    cursor:pointer; box-shadow:0 6px 20px rgba(212,168,76,0.5); transition:transform .2s;
+    font-family:inherit; letter-spacing:2px; margin-top:-10px;
+  }
+  .start-btn:hover{ transform:scale(1.05); }
+  .hint{ color:rgba(255,255,255,0.4); font-size:12px; margin-top:10px; }
+
+  /* 章节卡 */
+  #chapterCard{
+    position:absolute; inset:0; z-index:90; display:none;
+    align-items:center; justify-content:center; text-align:center;
+    background:rgba(4,10,24,0.92);
+  }
+  #chapterCard .ch-num{ color:var(--teal); font-size:18px; letter-spacing:6px; }
+  #chapterCard .ch-title{
+    color:var(--gold); font-size:clamp(28px,5vw,48px); margin-top:8px;
+    text-shadow:0 0 20px var(--mid); letter-spacing:3px;
+  }
+  #chapterCard .ch-line{ width:120px; height:2px; background:var(--gold); margin:18px auto; }
+
+  /* 教育小知识弹窗 - 顶部通知条样式 */
+  #factPop{
+    position:absolute; top:70px; left:50%; transform:translateX(-50%) translateY(-30px);
+    z-index:80; width:92%; max-width:460px; opacity:0; pointer-events:none; transition:all .4s;
+  }
+  #factPop.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; cursor:pointer; }
+  #factPop .card{
+    background:linear-gradient(135deg,var(--paper),#f5e8cc); color:var(--ink);
+    border:3px solid var(--gold); border-radius:18px; padding:14px 18px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  }
+  #factPop .badge{
+    display:inline-block; background:var(--coral); color:#fff; font-size:11px;
+    padding:3px 12px; border-radius:10px; margin-bottom:6px;
+  }
+  #factPop h4{ color:var(--mid); font-size:16px; margin-bottom:4px; }
+  #factPop p{ font-size:14px; line-height:1.6; }
+  #factPop .close{ margin-top:8px; text-align:center; color:var(--gold); font-size:12px; }
+
+  /* 右上角关闭按钮 */
+  #factPop .x-close{
+    position:absolute; top:-8px; right:-8px; width:26px; height:26px;
+    background:var(--coral); color:#fff; border:2px solid var(--gold);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:bold; cursor:pointer; line-height:1;
+    box-shadow:0 3px 10px rgba(0,0,0,0.4);
+  }
+
+  /* 结局 */
+  #endingScreen{
+    position:absolute; inset:0; z-index:95; display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:30px; background:rgba(4,10,24,0.95);
+  }
+  #endingScreen h2{ color:var(--gold); font-size:36px; margin-bottom:14px; text-shadow:0 0 20px var(--mid); }
+  #endingScreen .end-text{ max-width:560px; color:#eaf2ff; font-size:16px; line-height:1.8; margin-bottom:18px; }
+  #endingScreen .scores{ display:flex; gap:20px; margin-bottom:24px; }
+  #endingScreen .score-item{ background:rgba(10,30,58,0.8); border-radius:12px; padding:10px 18px; }
+  #endingScreen .score-item .v{ font-size:24px; color:var(--gold); font-weight:bold; }
+  #endingScreen .score-item .l{ font-size:11px; color:var(--teal); }
+  .replay-btn{
+    background:var(--mid); color:var(--silver); border:2px solid var(--gold);
+    padding:10px 30px; border-radius:25px; cursor:pointer; font-size:15px; font-family:inherit;
+  }
+  .replay-btn:hover{ background:var(--gold); color:var(--ink); }
+
+  /* ===== 移动端适配 ===== */
+  @media screen and (max-width: 768px){
+    /* 顶部状态栏 - 更紧凑 */
+    #hud{ padding:5px 6px; gap:4px; }
+    #chapterTag{ font-size:10px; padding:2px 7px; letter-spacing:0; }
+    #stats{ gap:2px; flex:1; }
+    .stat{ padding:2px 4px; font-size:10px; gap:2px; border-radius:10px; }
+    .stat .ic{ font-size:13px; }
+    .stat .bar{ width:26px; height:5px; }
+    .stat .val{ font-size:10px; min-width:12px; }
+
+    /* 立绘区 - 缩小，不遮挡对话框 */
+    #portraits{ height:42%; padding:0 2%; }
+    .portrait{ max-width:36%; height:88%; }
+
+    /* 对话框 */
+    #dialogueBox{
+      padding:10px 12px 14px; min-height:40vh;
+      padding-bottom:calc(14px + env(safe-area-inset-bottom));
+    }
+    #speakerName{ font-size:12px; padding:3px 12px; margin-left:6px; margin-bottom:4px; }
+    #dialogueText{ font-size:14px; line-height:1.6; min-height:50px; padding:4px 2px; }
+
+    /* 选项按钮 - 加大触控 */
+    #choices{ gap:6px; margin-top:8px; }
+    .choice{ padding:12px 14px; font-size:14px; border-radius:10px; min-height:44px; }
+    .choice:hover{ transform:none; }
+    .choice:active{ background:var(--mid); border-color:var(--gold); }
+    .choice .tag{ font-size:10px; }
+
+    /* 继续提示 */
+    #continueHint{ font-size:11px; }
+
+    /* 标题屏 - 紧凑布局 */
+    #titleScreen{ padding:10px 12px; justify-content:flex-start; padding-top:24px; overflow-y:auto; }
+    #titleScreen h1{ margin-bottom:4px; letter-spacing:2px; }
+    #titleScreen .sub{ font-size:12px; margin-bottom:10px; letter-spacing:1px; }
+    .char-cards{ gap:8px; margin-bottom:8px; flex-direction:column; width:100%; max-width:320px; }
+    .char-card{ width:100%; padding:8px 10px; display:flex; gap:10px; align-items:center; }
+    .char-card .pic{ width:70px; height:70px; flex-shrink:0; margin-bottom:0; }
+    .char-card > h3, .char-card > .tags, .char-card > .quote, .char-card > .skill{
+      padding:0; margin:0; text-align:left;
+    }
+    .char-card h3{ font-size:14px; margin-bottom:2px; }
+    .char-card .tags{ font-size:10px; margin-bottom:2px; }
+    .char-card .quote{ font-size:10px; line-height:1.3; }
+    .char-card .skill{ font-size:10px; margin-top:2px; line-height:1.3; }
+    .start-btn{ padding:12px 36px; font-size:16px; letter-spacing:1px; margin-top:8px; }
+    .hint{ font-size:10px; margin-top:6px; }
+
+    /* 章节卡 */
+    #chapterCard .ch-num{ font-size:14px; letter-spacing:4px; }
+    #chapterCard .ch-line{ width:80px; margin:10px auto; }
+
+    /* 小知识弹窗 - 顶部通知样式 */
+    #factPop{ top:60px; width:94%; }
+    #factPop .card{ padding:12px 14px; }
+    #factPop h4{ font-size:15px; }
+    #factPop p{ font-size:12px; line-height:1.5; }
+    #factPop .close{ font-size:11px; }
+    #factPop .x-close{ width:22px; height:22px; font-size:12px; top:-6px; right:-6px; }
+
+    /* 结局页 */
+    #endingScreen{ padding:20px; }
+    #endingScreen h2{ font-size:26px; }
+    #endingScreen .end-text{ font-size:14px; line-height:1.6; }
+    #endingScreen .scores{ gap:10px; flex-wrap:wrap; justify-content:center; }
+    #endingScreen .score-item{ padding:8px 12px; }
+    #endingScreen .score-item .v{ font-size:20px; }
+    #endingScreen .score-item .l{ font-size:10px; }
+    .replay-btn{ padding:10px 22px; font-size:14px; }
+  }
+
+  /* 小屏手机 (<390px) */
+  @media screen and (max-width: 390px){
+    #hud{ padding:4px 5px; gap:3px; }
+    #chapterTag{ font-size:9px; padding:2px 6px; }
+    #stats{ gap:2px; }
+    .stat{ padding:2px 3px; }
+    .stat .ic{ font-size:12px; }
+    .stat .bar{ width:22px; height:5px; }
+    .stat .val{ font-size:9px; min-width:11px; }
+    #portraits{ height:38%; }
+    .portrait{ max-width:34%; }
+    #dialogueBox{ min-height:44vh; padding:8px 10px 12px; }
+    #dialogueText{ font-size:13px; line-height:1.5; }
+    .char-card{ width:100%; padding:6px 8px; }
+    .char-card .pic{ width:60px; height:60px; }
+    .char-card h3{ font-size:13px; }
+  }
+
+  /* 横屏模式 */
+  @media screen and (max-height: 500px) and (orientation: landscape){
+    #portraits{ height:28%; }
+    #dialogueBox{ min-height:44px; padding:6px 14px; }
+    #dialogueText{ font-size:13px; min-height:36px; }
+    #choices{ flex-direction:row; gap:6px; }
+    .choice{ flex:1; font-size:13px; padding:8px 12px; }
+    .char-card{ width:140px; }
+    .char-card .pic{ height:90px; }
+  }
 </style>
 </head>
 <body>
-  正在跳转到海底两万里... <a href="海底两万里.html" style="color:#3fb8af">点击这里</a>
+<div id="stage">
+
+  <!-- 场景背景层 -->
+  <div class="scene scene-surface" data-scene="surface">
+    <div class="sun"></div><div class="light-rays"></div>
+    <div class="waves"></div>
+    <svg class="coral" viewBox="0 0 1200 300" preserveAspectRatio="none">
+      <path d="M0,300 L0,200 Q60,150 120,200 Q180,120 240,200 L240,300Z" fill="#06142a" opacity="0.6"/>
+      <path d="M600,300 L600,180 Q660,100 720,180 L720,300Z" fill="#06142a" opacity="0.6"/>
+      <path d="M900,300 L900,210 Q960,140 1020,210 L1020,300Z" fill="#06142a" opacity="0.6"/>
+    </svg>
+  </div>
+  <div class="scene scene-storm" data-scene="storm"><div class="bubbles" data-b="8"></div></div>
+  <div class="scene scene-sub" data-scene="sub"><div class="bubbles" data-b="14"></div></div>
+  <div class="scene scene-forest" data-scene="forest"><div class="bubbles" data-b="18"></div>
+    <svg class="coral" viewBox="0 0 1200 300" preserveAspectRatio="none">
+      <path d="M0,300 L0,150 Q40,60 80,150 Q120,30 160,150 Q200,80 240,150 L240,300Z" fill="#1a4a3a" opacity="0.5"/>
+      <path d="M300,300 L300,120 Q340,40 380,120 L380,300Z" fill="#2a6a4a" opacity="0.5"/>
+      <path d="M500,300 L500,170 Q540,80 580,170 Q620,50 660,170 L660,300Z" fill="#1a4a3a" opacity="0.5"/>
+      <path d="M750,300 L750,140 Q790,50 830,140 L830,300Z" fill="#2a6a4a" opacity="0.5"/>
+      <path d="M950,300 L950,160 Q990,70 1030,160 Q1070,40 1110,160 L1110,300Z" fill="#1a4a3a" opacity="0.5"/>
+    </svg>
+  </div>
+  <div class="scene scene-ice" data-scene="ice"><div class="bubbles" data-b="10"></div></div>
+  <div class="scene scene-ending" data-scene="ending"><div class="bubbles" data-b="12"></div></div>
+
+  <!-- 顶部状态栏 -->
+  <div id="hud">
+    <div id="chapterTag">序章</div>
+    <div id="stats">
+      <div class="stat" id="curiosity"><span class="ic">🔭</span><div class="bar"><div class="fill" style="width:30%"></div></div><span class="val">30</span></div>
+      <div class="stat" id="trust"><span class="ic">⚓</span><div class="bar"><div class="fill" style="width:20%"></div></div><span class="val">20</span></div>
+      <div class="stat" id="knowledge"><span class="ic">📖</span><div class="bar"><div class="fill" style="width:10%"></div></div><span class="val">10</span></div>
+    </div>
+  </div>
+
+  <!-- 立绘层 -->
+  <div id="portraits">
+    <div class="portrait" id="pLeft"></div>
+    <div class="portrait" id="pRight"></div>
+  </div>
+
+  <!-- 教育小知识 -->
+  <div id="factPop"><div class="card">
+    <span class="x-close" id="factCloseBtn">×</span>
+    <span class="badge">🔬 海洋小知识</span>
+    <h4 id="factTitle"></h4>
+    <p id="factText"></p>
+    <div class="close">点击任意处继续 ▸</div>
+  </div></div>
+
+  <!-- 章节卡 -->
+  <div id="chapterCard">
+    <div class="ch-num" id="chNum"></div>
+    <div class="ch-line"></div>
+    <div class="ch-title" id="chTitle"></div>
+  </div>
+
+  <!-- 对话框 -->
+  <div id="dialogueBox">
+    <span id="speakerName">旁白</span>
+    <div id="dialogueText"></div>
+    <div id="choices"></div>
+    <div id="continueHint" style="display:none">点击继续 ▾</div>
+  </div>
+
+  <!-- 标题屏 -->
+  <div id="titleScreen">
+    <h1>海底两万里</h1>
+    <div class="sub">～ 一场深海探险的奇妙旅程 ～</div>
+    <div class="char-cards">
+      <div class="char-card">
+        <div class="pic" id="cardNemo"></div>
+        <h3>尼摩船长</h3>
+        <div class="tags">神秘 · 善良 · 亦正亦邪</div>
+        <div class="skill">技能：操控潜艇 · 海底救援 · 收集宝藏</div>
+        <div class="quote">「大海不会懂得什么叫暴政！」</div>
+      </div>
+      <div class="char-card">
+        <div class="pic" id="cardAronnax"></div>
+        <h3>阿龙纳斯教授</h3>
+        <div class="tags">博学 · 好奇 · 热爱科学</div>
+        <div class="skill">技能：识别海洋生物 · 记录见闻 · 解谜</div>
+        <div class="quote">「我从未见过如此壮丽的海底世界！」</div>
+      </div>
+    </div>
+    <button class="start-btn" id="startBtn">开始探险</button>
+    <div class="hint">提示：点击对话框推进剧情，选择不同选项会走向不同结局</div>
+  </div>
+
+  <!-- 结局屏 -->
+  <div id="endingScreen">
+    <h2 id="endTitle"></h2>
+    <div class="end-text" id="endText"></div>
+    <div class="scores">
+      <div class="score-item"><div class="v" id="sCurio">0</div><div class="l">科学好奇心</div></div>
+      <div class="score-item"><div class="v" id="sTrust">0</div><div class="l">尼摩信任度</div></div>
+      <div class="score-item"><div class="v" id="sKnow">0</div><div class="l">海洋知识</div></div>
+    </div>
+    <button class="replay-btn" id="replayBtn">重新开始探险</button>
+  </div>
+</div>
+
+<!-- ============ 角色 SVG 定义 ============ -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- 尼摩船长 -->
+    <symbol id="svgNemo" viewBox="0 0 200 320">
+      <!-- 披风 -->
+      <path d="M45,125 Q100,108 155,125 L168,250 Q100,228 32,250 Z" fill="#1a2230" stroke="#0a1018" stroke-width="2"/>
+      <path d="M45,125 Q100,108 155,125" fill="none" stroke="#3a4a5a" stroke-width="1.5"/>
+      <!-- 身体制服 -->
+      <rect x="62" y="118" width="76" height="140" rx="10" fill="#16385f"/>
+      <rect x="62" y="118" width="76" height="140" rx="10" fill="none" stroke="#0a1e3a" stroke-width="2"/>
+      <!-- 立领 -->
+      <path d="M78,118 L100,138 L122,118 L122,130 L100,148 L78,130 Z" fill="#0a1e3a"/>
+      <!-- 金扣子 -->
+      <circle cx="100" cy="155" r="3.5" fill="#d4a84c" stroke="#8a6a1c" stroke-width="0.8"/>
+      <circle cx="100" cy="178" r="3.5" fill="#d4a84c" stroke="#8a6a1c" stroke-width="0.8"/>
+      <circle cx="100" cy="201" r="3.5" fill="#d4a84c" stroke="#8a6a1c" stroke-width="0.8"/>
+      <circle cx="100" cy="224" r="3.5" fill="#d4a84c" stroke="#8a6a1c" stroke-width="0.8"/>
+      <!-- 腰带 -->
+      <rect x="62" y="232" width="76" height="10" fill="#0a1e3a"/>
+      <!-- 望远镜挂绳 -->
+      <path d="M82,135 Q75,160 70,180" fill="none" stroke="#3a3a3a" stroke-width="2"/>
+      <!-- 望远镜 -->
+      <g transform="rotate(-20 70 185)">
+        <rect x="64" y="178" width="6" height="22" rx="2" fill="#5a5a5a"/>
+        <rect x="63" y="196" width="8" height="6" rx="1" fill="#8a8a8a"/>
+        <rect x="64" y="174" width="6" height="5" rx="2" fill="#3a3a3a"/>
+      </g>
+      <!-- 匕首 -->
+      <g transform="rotate(8 132 195)">
+        <rect x="130" y="178" width="5" height="26" rx="1" fill="#c8d4e0"/>
+        <rect x="126" y="176" width="13" height="5" rx="1" fill="#5a3a1a"/>
+        <rect x="130" y="200" width="5" height="4" fill="#3a2a1a"/>
+      </g>
+      <!-- 手臂 -->
+      <rect x="46" y="124" width="20" height="95" rx="9" fill="#16385f" stroke="#0a1e3a" stroke-width="2"/>
+      <rect x="134" y="124" width="20" height="95" rx="9" fill="#16385f" stroke="#0a1e3a" stroke-width="2"/>
+      <!-- 手 -->
+      <circle cx="56" cy="222" r="9" fill="#e8c4a0" stroke="#c8a080" stroke-width="1.5"/>
+      <circle cx="144" cy="222" r="9" fill="#e8c4a0" stroke="#c8a080" stroke-width="1.5"/>
+      <!-- 脖子 -->
+      <rect x="90" y="105" width="20" height="18" fill="#e8c4a0"/>
+      <!-- 头 -->
+      <ellipse cx="100" cy="78" rx="33" ry="39" fill="#e8c4a0" stroke="#c8a080" stroke-width="1.5"/>
+      <!-- 卷发 -->
+      <path d="M67,72 Q66,40 100,38 Q134,40 133,72 Q130,55 118,50 Q100,46 82,50 Q70,55 67,72Z" fill="#2a1810"/>
+      <circle cx="74" cy="56" r="7" fill="#2a1810"/>
+      <circle cx="88" cy="46" r="8" fill="#2a1810"/>
+      <circle cx="104" cy="44" r="8" fill="#2a1810"/>
+      <circle cx="118" cy="48" r="7" fill="#2a1810"/>
+      <circle cx="128" cy="58" r="6" fill="#2a1810"/>
+      <!-- 鬓角 -->
+      <path d="M68,72 Q66,86 70,96" fill="none" stroke="#2a1810" stroke-width="4" stroke-linecap="round"/>
+      <path d="M132,72 Q134,86 130,96" fill="none" stroke="#2a1810" stroke-width="4" stroke-linecap="round"/>
+      <!-- 眉毛 严肃 -->
+      <path d="M80,72 Q86,69 94,72" fill="none" stroke="#2a1810" stroke-width="3" stroke-linecap="round"/>
+      <path d="M106,72 Q114,69 120,72" fill="none" stroke="#2a1810" stroke-width="3" stroke-linecap="round"/>
+      <!-- 眼睛 -->
+      <ellipse cx="88" cy="82" rx="5" ry="6" fill="#fff" stroke="#3a3a3a" stroke-width="0.5"/>
+      <ellipse cx="112" cy="82" rx="5" ry="6" fill="#fff" stroke="#3a3a3a" stroke-width="0.5"/>
+      <circle cx="88" cy="83" r="3" fill="#3a2a4a"/>
+      <circle cx="112" cy="83" r="3" fill="#3a2a4a"/>
+      <circle cx="89" cy="82" r="1" fill="#fff"/>
+      <circle cx="113" cy="82" r="1" fill="#fff"/>
+      <!-- 鼻子 -->
+      <path d="M100,88 Q97,94 100,98" fill="none" stroke="#c8a080" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- 嘴 微下撇 忧伤 -->
+      <path d="M91,104 Q100,101 109,104" fill="none" stroke="#7a4a3a" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- 鞋 -->
+      <ellipse cx="82" cy="262" rx="14" ry="6" fill="#0a1018"/>
+      <ellipse cx="118" cy="262" rx="14" ry="6" fill="#0a1018"/>
+    </symbol>
+
+    <!-- 阿龙纳斯教授 -->
+    <symbol id="svgAronnax" viewBox="0 0 200 320">
+      <!-- 身体马甲 -->
+      <rect x="62" y="118" width="76" height="140" rx="10" fill="#d4b896" stroke="#a08866" stroke-width="2"/>
+      <!-- 衬衫 -->
+      <path d="M84,118 L100,148 L116,118 L116,220 L84,220 Z" fill="#f5f0e6" stroke="#d4c8a8" stroke-width="1.5"/>
+      <!-- 领结/领带 -->
+      <path d="M94,140 L100,150 L106,140 L100,148 Z" fill="#5a3a2a"/>
+      <!-- 马甲扣子 -->
+      <circle cx="92" cy="160" r="2.5" fill="#8a6a3a"/>
+      <circle cx="92" cy="180" r="2.5" fill="#8a6a3a"/>
+      <circle cx="92" cy="200" r="2.5" fill="#8a6a3a"/>
+      <!-- 口袋笔记本 -->
+      <rect x="112" y="172" width="20" height="26" rx="2" fill="#8a6a3a" stroke="#5a3a1a" stroke-width="1.2"/>
+      <line x1="116" y1="178" x2="128" y2="178" stroke="#5a3a1a" stroke-width="0.8"/>
+      <line x1="116" y1="183" x2="128" y2="183" stroke="#5a3a1a" stroke-width="0.8"/>
+      <line x1="116" y1="188" x2="128" y2="188" stroke="#5a3a1a" stroke-width="0.8"/>
+      <!-- 钢笔 -->
+      <g transform="rotate(15 120 162)">
+        <rect x="118" y="155" width="3" height="16" fill="#2a2a3a"/>
+        <rect x="117" y="153" width="5" height="4" fill="#d4a84c"/>
+      </g>
+      <!-- 手臂 -->
+      <rect x="46" y="124" width="20" height="80" rx="9" fill="#d4b896" stroke="#a08866" stroke-width="2"/>
+      <rect x="134" y="124" width="20" height="80" rx="9" fill="#d4b896" stroke="#a08866" stroke-width="2"/>
+      <!-- 手捧书 -->
+      <rect x="70" y="200" width="60" height="40" rx="3" fill="#8a5a2a" stroke="#5a3a1a" stroke-width="2"/>
+      <rect x="73" y="203" width="54" height="34" fill="#f5e6c8"/>
+      <line x1="100" y1="203" x2="100" y2="237" stroke="#8a5a2a" stroke-width="1.2"/>
+      <line x1="80" y1="212" x2="94" y2="212" stroke="#a08866" stroke-width="0.6"/>
+      <line x1="80" y1="218" x2="94" y2="218" stroke="#a08866" stroke-width="0.6"/>
+      <line x1="106" y1="212" x2="120" y2="212" stroke="#a08866" stroke-width="0.6"/>
+      <line x1="106" y1="218" x2="120" y2="218" stroke="#a08866" stroke-width="0.6"/>
+      <!-- 手 -->
+      <circle cx="56" cy="200" r="8" fill="#f0d4b0" stroke="#c8a878" stroke-width="1.2"/>
+      <circle cx="144" cy="200" r="8" fill="#f0d4b0" stroke="#c8a878" stroke-width="1.2"/>
+      <!-- 脖子 -->
+      <rect x="90" y="105" width="20" height="18" fill="#f0d4b0"/>
+      <!-- 头 -->
+      <ellipse cx="100" cy="78" rx="33" ry="39" fill="#f0d4b0" stroke="#c8a878" stroke-width="1.5"/>
+      <!-- 头发 浅棕 -->
+      <path d="M67,70 Q66,38 100,36 Q134,38 133,70 Q128,52 100,50 Q72,52 67,70Z" fill="#a87444"/>
+      <path d="M72,50 Q82,40 100,40 Q118,40 128,50" fill="none" stroke="#8a5a2a" stroke-width="2"/>
+      <!-- 鬓角 -->
+      <path d="M68,70 Q66,84 72,92" fill="#a87444" stroke="none"/>
+      <path d="M132,70 Q134,84 128,92" fill="#a87444" stroke="none"/>
+      <!-- 眉毛 温和 -->
+      <path d="M80,70 Q86,67 93,70" fill="none" stroke="#8a5a2a" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M107,70 Q114,67 120,70" fill="none" stroke="#8a5a2a" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- 圆眼镜 -->
+      <circle cx="88" cy="82" r="10" fill="rgba(255,255,255,0.2)" stroke="#3a3a3a" stroke-width="2.2"/>
+      <circle cx="112" cy="82" r="10" fill="rgba(255,255,255,0.2)" stroke="#3a3a3a" stroke-width="2.2"/>
+      <line x1="98" y1="82" x2="102" y2="82" stroke="#3a3a3a" stroke-width="2.2"/>
+      <line x1="78" y1="80" x2="72" y2="78" stroke="#3a3a3a" stroke-width="2"/>
+      <line x1="122" y1="80" x2="128" y2="78" stroke="#3a3a3a" stroke-width="2"/>
+      <!-- 眼睛 好奇 -->
+      <circle cx="88" cy="82" r="2.8" fill="#3a2a1a"/>
+      <circle cx="112" cy="82" r="2.8" fill="#3a2a1a"/>
+      <circle cx="89" cy="81" r="1" fill="#fff"/>
+      <circle cx="113" cy="81" r="1" fill="#fff"/>
+      <!-- 鼻子 -->
+      <path d="M100,90 Q97,96 100,99 Q103,96 100,90" fill="none" stroke="#c8a878" stroke-width="1.3" stroke-linecap="round"/>
+      <!-- 嘴 微笑 -->
+      <path d="M91,105 Q100,110 109,105" fill="none" stroke="#7a4a3a" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- 腮红 -->
+      <ellipse cx="76" cy="92" rx="5" ry="3" fill="#f5b8a0" opacity="0.5"/>
+      <ellipse cx="124" cy="92" rx="5" ry="3" fill="#f5b8a0" opacity="0.5"/>
+      <!-- 鞋 -->
+      <ellipse cx="82" cy="262" rx="14" ry="6" fill="#5a3a1a"/>
+      <ellipse cx="118" cy="262" rx="14" ry="6" fill="#5a3a1a"/>
+    </symbol>
+
+    <!-- 尼德·兰（配角，简化） -->
+    <symbol id="svgNed" viewBox="0 0 200 320">
+      <rect x="62" y="120" width="76" height="138" rx="10" fill="#6a4a2a"/>
+      <rect x="46" y="126" width="20" height="90" rx="9" fill="#6a4a2a"/>
+      <rect x="134" y="126" width="20" height="90" rx="9" fill="#6a4a2a"/>
+      <ellipse cx="100" cy="78" rx="34" ry="40" fill="#e8c4a0"/>
+      <path d="M64,72 Q62,36 100,34 Q138,36 136,72 Q130,56 100,52 Q70,56 64,72Z" fill="#c0a050"/>
+      <path d="M78,70 L94,70" stroke="#8a6a1c" stroke-width="3" stroke-linecap="round"/>
+      <path d="M106,70 L122,70" stroke="#8a6a1c" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="88" cy="82" r="3" fill="#2a2a2a"/>
+      <circle cx="112" cy="82" r="3" fill="#2a2a2a"/>
+      <path d="M88,106 Q100,114 114,104" fill="none" stroke="#7a4a3a" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="56" cy="220" r="9" fill="#e8c4a0"/>
+      <circle cx="144" cy="220" r="9" fill="#e8c4a0"/>
+      <rect x="78" y="200" width="44" height="8" fill="#8a5a2a"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+/* ========================================================
+   海底两万里 · 剧情游戏
+   数据结构：每个节点 speaker/portrait/text/scene/chapter
+   choices 为空时点击推进到 next；有 choices 时显示选项
+   ======================================================== */
+
+const STORY = {
+  // ---- 序章 ----
+  start: {
+    chapter:"序章 · 海怪传说", scene:"surface",
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"1866年，海上发生了一件离奇古怪的事。许多船只在航行时，都遇到了一个「庞然大物」——它体型巨大，还会发出神秘的光芒。",
+    next:"start2"
+  },
+  start2: {
+    speaker:"narrator", name:"旁白",
+    text:"有人说它是巨型鲸鱼，有人说它是海怪。整个世界都议论纷纷，人心惶惶。",
+    next:"invite"
+  },
+  invite: {
+    chapter:"第一章 · 远征邀请", scene:"surface",
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"我是阿龙纳斯教授，一位海洋生物学家。美国政府邀请我登上「林肯号」，去追捕这只神秘的海怪。这可是千载难逢的研究机会！",
+    choices:[
+      { text:"太棒了！我要亲眼见识这个海怪！", next:"aboard", eff:{curiosity:2}, tag:"+好奇心" },
+      { text:"虽然危险，但科学值得冒险。", next:"aboard", eff:{curiosity:1,knowledge:1}, tag:"+知识" },
+    ]
+  },
+  aboard: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"林肯号在海上巡弋了数月。船上有一位加拿大捕鲸手——尼德·兰，他力大无穷，却不太相信海怪的存在。",
+    next:"meetNed"
+  },
+  meetNed: {
+    speaker:"ned", name:"尼德·兰", portrait:"ned",
+    text:"教授，我捕过无数条鲸鱼，可从没见过什么会发光的海怪。我看啊，八成是人们看花了眼！",
+    choices:[
+      { text:"尼德，海洋里还有许多未知生物。", next:"ned2", eff:{knowledge:1}, tag:"+知识" },
+      { text:"也许吧，但亲眼看看也无妨。", next:"ned2", eff:{trust:1}, tag:"+信任" },
+    ]
+  },
+  ned2: {
+    fact:{ title:"鲸鱼是哺乳动物", text:"鲸鱼虽然生活在海里，但它们不是鱼，而是哺乳动物！它们用肺呼吸，需要浮出水面换气。蓝鲸是地球上已知最大的动物，体长可达30米呢。" },
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"（几个月过去了……）那天夜里，海面上突然亮起了奇异的光芒！尼德大喊起来——",
+    next:"hunt"
+  },
+  hunt: {
+    chapter:"第二章 · 怪物现身", scene:"storm",
+    speaker:"ned", name:"尼德·兰", portrait:"ned",
+    text:"看那边！它在那儿！天哪，那是什么东西？！",
+    next:"hunt2"
+  },
+  hunt2: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"一个长长的、发着磷光的物体在海面上移动。林肯号全速追击，突然——「轰！」一声巨响，船身剧烈摇晃！",
+    next:"fall"
+  },
+  fall: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"我被甩进了漆黑的大海！海水冰冷刺骨，我拼命呼救……康塞尔，我的仆人，跳下来救我。我们在海中相依为命。",
+    next:"fall2"
+  },
+  fall2: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"就在精疲力竭之时，他们爬上了一座坚硬的「岛屿」——可这岛屿，竟然是钢铁做的！",
+    next:"rescued"
+  },
+  rescued: {
+    chapter:"第三章 · 鹦鹉螺号", scene:"sub",
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"天哪！这根本不是什么海怪——这是一艘潜水艇！一艘用钢铁制造的、不可思议的潜水艇！",
+    choices:[
+      { text:"太神奇了！我想研究它的工作原理。", next:"cabin", eff:{curiosity:2,knowledge:1}, tag:"+好奇+知识" },
+      { text:"我们会得救吗？", next:"cabin", eff:{trust:1}, tag:"+信任" },
+    ]
+  },
+  cabin: {
+    fact:{ title:"潜水艇的秘密", text:"潜水艇能潜入水下航行。它通过向水舱注水变重下沉，排出水变轻上浮。鹦鹉螺号用电作动力，而电来自海水中提取的钠——这在当时是非常超前的想象！" },
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"八个蒙面壮汉将他们带入了潜艇内部。这是一座豪华的海底宫殿——图书馆、博物馆、管风琴……应有尽有。",
+    next:"meetNemo"
+  },
+  meetNemo: {
+    chapter:"第四章 · 神秘船长", scene:"sub",
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"先生们，你们闯入了我的世界。我是尼摩船长。你们可以永远留在这里，但不能再回到那个充满战争与奴役的陆地。",
+    choices:[
+      { text:"「为什么您如此憎恨陆地？」", next:"nemoWhy", eff:{trust:2,curiosity:1}, tag:"+信任+好奇" },
+      { text:"「可是……我有家人在等我。」", next:"nemoStrict", eff:{trust:-1}, tag:"-" },
+      { text:"（沉默观察这位神秘船长）", next:"nemoObserve", eff:{curiosity:1}, tag:"+好奇" },
+    ]
+  },
+  nemoWhy: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"大海不会懂得什么叫暴政！在陆地上，人们互相争斗、奴役同类。而在深海，一切生灵都自由自在。这里，才是真正的乐园。",
+    next:"nemoTour"
+  },
+  nemoStrict: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"（眼神闪过一丝忧伤）……我理解你的心情。但为了我的秘密，你必须留下。不过我会好好待你。",
+    next:"nemoTour"
+  },
+  nemoObserve: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"尼摩船长目光深邃，似乎藏着无尽的往事。他的声音平静，却透着一丝不易察觉的悲伤。",
+    next:"nemoTour"
+  },
+  nemoTour: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"我会带你们看看我的世界。透过舷窗，你们将见到人类从未见过的奇景。来吧。",
+    next:"window"
+  },
+  window: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"我从未见过如此壮丽的海底世界！珊瑚、水母、成群的鱼儿从舷窗外游过……作为一名学者，我激动得说不出话来！",
+    choices:[
+      { text:"拿出笔记本，记录每一种生物。", next:"record", eff:{knowledge:2,curiosity:1}, tag:"+知识" },
+      { text:"静静地欣赏这美景。", next:"admire", eff:{trust:1}, tag:"+信任" },
+    ]
+  },
+  record: {
+    fact:{ title:"珊瑚是动物！", text:"珊瑚看起来像植物，其实它是动物！珊瑚虫是非常小的生物，它们聚在一起建造出坚硬的骨骼。无数珊瑚虫代代相传，历经千年建成了美丽的珊瑚礁，是海洋生物的家园。" },
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"（记录中）水母、海葵、鹦嘴鱼……这里的生物多样性远远超出我的想象！这些资料将为科学做出巨大贡献。",
+    next:"forestInvite"
+  },
+  admire: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"（看到教授被美景打动，露出难得的微笑）你懂这片海，教授。这是上天赐予我们的礼物。",
+    next:"forestInvite"
+  },
+  forestInvite: {
+    chapter:"第五章 · 海底漫步", scene:"forest",
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"明天，我带你们去海底森林打猎。穿上我的潜水服，你们将亲手触摸这片海洋。",
+    choices:[
+      { text:"太期待了！海底森林是什么样的？", next:"forest", eff:{curiosity:2}, tag:"+好奇" },
+      { text:"会不会很危险？", next:"forestCalm", eff:{trust:1}, tag:"+信任" },
+    ]
+  },
+  forestCalm: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"放心，有我在。这片海里，没有我不能去的地方。",
+    next:"forest"
+  },
+  forest: {
+    fact:{ title:"海底也有森林", text:"海底森林其实是巨型海藻林！海藻能长到几十米高，像陆地上的树一样。海藻林为海獭、鱼类提供了家园，还能吸收二氧化碳，是海洋的「绿肺」。" },
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"我们穿着沉重的潜水服，行走在海底。珊瑚像树木一样高大，鱼群如鸟儿般穿梭。阳光从海面洒下，美得像一个梦。",
+    next:"forest2"
+  },
+  forest2: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"看，那边有一只海蜘蛛蟹。今晚的晚餐有着落了。",
+    next:"forest3"
+  },
+  forest3: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"突然，一只巨大的海蜘蛛蟹从珊瑚后冲出，朝我扑来！",
+    choices:[
+      { text:"冷静观察它的动作，寻找破绽。", next:"crabWin", eff:{knowledge:1,curiosity:1}, tag:"+知识" },
+      { text:"大声呼救！", next:"crabRescue", eff:{trust:2}, tag:"+信任" },
+    ]
+  },
+  crabWin: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"教授冷静地侧身闪过，尼摩船长一枪击退了海蜘蛛蟹。船长赞许地点了点头。",
+    next:"pearlIntro"
+  },
+  crabRescue: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"（持枪击退海蜘蛛蟹）小心些，教授。这片海美丽，但也危险。",
+    next:"pearlIntro"
+  },
+  pearlIntro: {
+    chapter:"第六章 · 采珠人", scene:"forest",
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"几天后，鹦鹉螺号来到了锡兰（今斯里兰卡）附近的采珠场。尼摩船长带教授潜入海底。",
+    next:"pearl"
+  },
+  pearl: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"在海底，他们发现一个可怜的印度采珠人正在辛苦工作。突然，一只巨大的鲨鱼朝他游来！",
+    next:"pearlChoice"
+  },
+  pearlChoice: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"天哪！采珠人有危险！那只鲨鱼要吃掉他了！",
+    choices:[
+      { text:"「船长，我们必须救他！」", next:"pearlSave", eff:{trust:3,knowledge:1}, tag:"+信任+知识" },
+      { text:"冲上去帮忙！", next:"pearlSave", eff:{trust:2}, tag:"+信任" },
+    ]
+  },
+  pearlSave: {
+    fact:{ title:"鲨鱼的真相", text:"鲨鱼虽然看起来凶猛，但大多数鲨鱼其实并不会主动攻击人类。全球有500多种鲨鱼，只有少数几种对人有危险。鲨鱼是海洋食物链的顶级捕食者，对维持海洋生态平衡非常重要。" },
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"尼摩船长毫不犹豫地冲上前，与鲨鱼展开搏斗！危急时刻，尼德·兰一鱼叉刺中鲨鱼。采珠人得救了。",
+    next:"pearlKind"
+  },
+  pearlKind: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"尼摩船长把一袋珍珠送给采珠人。我忽然明白了——他嘴上说恨陆地，可他的心里，藏着深深的善良。",
+    choices:[
+      { text:"「船长，您是个好人。」", next:"nemoHeart", eff:{trust:3}, tag:"+信任" },
+      { text:"默默记下这一刻。", next:"nemoHeart", eff:{knowledge:1,trust:1}, tag:"+知识" },
+    ]
+  },
+  nemoHeart: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"（背过身）那个采珠人，生活在压迫之下，就像……我曾经失去的同胞。只要我还有一口气，就会帮助那些受苦的人。",
+    next:"antarcIntro"
+  },
+  antarcIntro: {
+    chapter:"第七章 · 南极冰困", scene:"ice",
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"鹦鹉螺号一路南行，来到了南极。可在冰层之下，潜艇被困住了！空气即将耗尽，所有人命悬一线。",
+    next:"antarcChoice"
+  },
+  antarcChoice: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"我们只能轮流凿冰。教授，这关乎所有人的性命。",
+    choices:[
+      { text:"拿起工具，和大家一起凿冰！", next:"antarcBreak", eff:{trust:3,knowledge:1}, tag:"+信任+知识" },
+      { text:"组织大家轮流作业，节省体力。", next:"antarcBreak", eff:{knowledge:2,trust:2}, tag:"+知识" },
+    ]
+  },
+  antarcBreak: {
+    fact:{ title:"南极的冰", text:"南极是地球上最冷的大陆，覆盖着厚厚的冰层。南极冰盖储藏了地球70%的淡水。南极海域虽然冰冷，却生活着企鹅、海豹、鲸鱼等许多适应严寒的动物。" },
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"众人齐心协力，终于凿穿了冰层！鹦鹉螺号冲出水面，所有人贪婪地呼吸着新鲜空气。我们活下来了！",
+    next:"octopusIntro"
+  },
+  octopusIntro: {
+    chapter:"第八章 · 大战章鱼", scene:"sub",
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"航行途中，一群巨大的章鱼缠住了鹦鹉螺号的螺旋桨！必须上岸搏斗！",
+    next:"octopus"
+  },
+  octopus: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"所有人，拿上斧头！我们不能让这些怪物毁了我的船！",
+    choices:[
+      { text:"拿起斧头，奋勇战斗！", next:"octopusWin", eff:{trust:3}, tag:"+信任" },
+      { text:"保护受伤的船员。", next:"octopusWin", eff:{trust:2,knowledge:1}, tag:"+知识" },
+    ]
+  },
+  octopusWin: {
+    fact:{ title:"章鱼有多聪明", text:"章鱼是海洋里最聪明的无脊椎动物！它有8条长着吸盘的触手，3颗心脏，蓝色的血液。章鱼会变色伪装、会拧开瓶盖、甚至会使用工具——简直像外星生物一样神奇！" },
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"经过惨烈的搏斗，章鱼终于被击退。但一位船员不幸被卷入海中，永远回不来了。尼摩船长流下了眼泪。",
+    next:"crossroad"
+  },
+  crossroad: {
+    chapter:"第九章 · 抉择", scene:"sub",
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"（我内心挣扎不已）这趟旅程让我见识了奇迹，可我也越来越想家。尼德·兰一直策划着逃跑……我该怎么做？",
+    choices:[
+      { text:"和尼德·兰一起计划逃跑，回到陆地。", next:"pathEscape", eff:{trust:-2,curiosity:1}, tag:"→ 逃离路线" },
+      { text:"留下来，继续探索海洋的奥秘。", next:"pathStay", eff:{trust:3,knowledge:2}, tag:"→ 留守路线" },
+      { text:"劝说尼摩船长回到陆地，帮助世人。", next:"pathGuide", eff:{trust:2,knowledge:1,curiosity:1}, tag:"→ 引导路线" },
+    ]
+  },
+
+  // ===== 结局路线 =====
+  pathEscape: {
+    speaker:"ned", name:"尼德·兰", portrait:"ned",
+    text:"教授，今晚就是机会！趁着夜色，我们划小船逃跑！",
+    next:"escapeStorm"
+  },
+  escapeStorm: {
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"就在他们逃出潜艇时，鹦鹉螺号卷入了可怕的迈尔斯通大漩涡！天地旋转，巨浪滔天……",
+    next:"escapeWake"
+  },
+  escapeWake: {
+    scene:"ending",
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"当我醒来时，我躺在一个渔夫的小屋里。尼德·兰和康塞尔也在。我们活下来了！可是，鹦鹉螺号和尼摩船长……从此再无音讯。",
+    next:"endingEscape"
+  },
+  endingEscape: {
+    isEnding:true, title:"结局 · 重返陆地",
+    text:"你回到了文明世界，将海底的见闻写成了书，让全世界的人都认识了神奇的海洋。但每当夜深，你总会想起那位神秘的船长，和那片深邃的蓝。\n\n也许，大海永远保守着它的秘密。",
+    type:"escape"
+  },
+
+  pathStay: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"「船长，请让我留下。这片海洋里还有太多未知，我想把它们都记录下来。」",
+    next:"stayAccept"
+  },
+  stayAccept: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"（深深地看了我一眼）……好。从今天起，你就是我最后的同伴。这片海，将向你展示它所有的秘密。",
+    next:"stayJourney"
+  },
+  stayJourney: {
+    scene:"ending",
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"教授跟随鹦鹉螺号继续航行，记录了无数海洋生物，写下了厚厚的《海底生物图鉴》。他的著作启蒙了一代又一代的海洋学家。",
+    next:"endingStay"
+  },
+  endingStay: {
+    isEnding:true, title:"结局 · 海洋学者",
+    text:"你选择留在鹦鹉螺号上，成为大海的孩子。你记录的海洋知识，后来帮助人类更好地保护了海洋。\n\n尼摩船长不再是孤独的——因为有人，真正懂了他的海。",
+    type:"stay"
+  },
+
+  pathGuide: {
+    speaker:"aronnax", name:"阿龙纳斯", portrait:"aronnax",
+    text:"「船长，您的知识、您的潜艇，本可以造福世人。何必把自己困在海里？陆地也有值得守护的人。」",
+    next:"guideThink"
+  },
+  guideThink: {
+    speaker:"nemo", name:"尼摩船长", portrait:"nemo",
+    text:"（沉默良久，眼眶微红）……你说得对。仇恨只会吞噬我自己。也许是时候，让这片海的秘密，照亮陆地了。",
+    next:"guideReturn"
+  },
+  guideReturn: {
+    scene:"ending",
+    speaker:"narrator", name:"旁白", portrait:null,
+    text:"鹦鹉螺号缓缓浮出水面，驶向海岸。尼摩船长决定，将潜艇的技术与海洋的知识，分享给世界，帮助受苦的人们。",
+    next:"endingGuide"
+  },
+  endingGuide: {
+    isEnding:true, title:"结局 · 海洋使者",
+    text:"你和尼摩船长一起，把海洋的奥秘带回了人间。潜艇技术造福了航运，海洋知识唤醒了人们对大海的热爱与保护。\n\n大海不再只是逃避的地方，而成了连接所有人的蓝色家园。",
+    type:"guide"
+  },
+};
+
+/* ===================== 游戏引擎 ===================== */
+const state = { node:"start", curiosity:30, trust:20, knowledge:10, typing:false, queue:null };
+
+const $ = id => document.getElementById(id);
+const speakerName = $("speakerName");
+const dialogueText = $("dialogueText");
+const choicesEl = $("choices");
+const continueHint = $("continueHint");
+const chapterTag = $("chapterTag");
+const pLeft = $("pLeft"), pRight = $("pRight");
+
+function setScene(name){
+  document.querySelectorAll(".scene").forEach(s=>{
+    s.classList.toggle("active", s.dataset.scene===name);
+  });
+}
+function setPortrait(side, who, active){
+  const el = side==="left"?pLeft:pRight;
+  if(!who){ el.classList.remove("show","active","dim"); el.innerHTML=""; return; }
+  const cap = who.charAt(0).toUpperCase()+who.slice(1);
+  const pngMap = { nemo:"nemo", aronnax:"aronnax", ned:"ned" };
+  const fname = pngMap[who] || who;
+  const imgSrc = fname + ".jpg";
+  el.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:contain;display:block" />
+    <svg style="display:none;width:100%;height:100%"><use href="#svg${cap}"/></svg>`;
+  const img = el.querySelector("img");
+  const svg = el.querySelector("svg");
+  img.addEventListener("error", ()=>{
+    img.style.display = "none";
+    svg.style.display = "block";
+  });
+  img.addEventListener("load", ()=>{
+    img.style.display = "block";
+    svg.style.display = "none";
+  });
+  el.classList.add("show");
+  el.classList.toggle("active", active);
+  el.classList.toggle("dim", !active);
+}
+function updateStats(){
+  const cv = Math.min(100,state.curiosity);
+  const tv = Math.min(100,state.trust);
+  const kv = Math.min(100,state.knowledge);
+  $("curiosity").querySelector(".fill").style.width = cv+"%";
+  $("trust").querySelector(".fill").style.width = tv+"%";
+  $("knowledge").querySelector(".fill").style.width = kv+"%";
+  $("curiosity").querySelector(".val").textContent = cv;
+  $("trust").querySelector(".val").textContent = tv;
+  $("knowledge").querySelector(".val").textContent = kv;
+}
+function applyEff(eff){
+  if(!eff) return;
+  if(eff.curiosity) state.curiosity = Math.max(0, state.curiosity+eff.curiosity*5);
+  if(eff.trust) state.trust = Math.max(0, state.trust+eff.trust*5);
+  if(eff.knowledge) state.knowledge = Math.max(0, state.knowledge+eff.knowledge*5);
+  updateStats();
+}
+function showChapter(num, title){
+  $("chNum").textContent = num;
+  $("chTitle").textContent = title;
+  const card = $("chapterCard");
+  card.style.display = "flex";
+  card.style.opacity = 0;
+  setTimeout(()=>{ card.style.transition="opacity .5s"; card.style.opacity=1; }, 20);
+  setTimeout(()=>{
+    card.style.opacity = 0;
+    setTimeout(()=>{ card.style.display="none"; }, 500);
+  }, 2000);
+}
+
+let typeTimer = null;
+function typewriter(text, done){
+  state.typing = true;
+  continueHint.style.display = "none";
+  choicesEl.innerHTML = "";
+  dialogueText.innerHTML = "";
+  let i = 0;
+  const speed = 32;
+  function step(){
+    if(i < text.length){
+      dialogueText.innerHTML = text.slice(0,i+1) + '<span class="cursor">▌</span>';
+      i++;
+      typeTimer = setTimeout(step, speed);
+    } else {
+      dialogueText.innerHTML = text;
+      state.typing = false;
+      done && done();
+    }
+  }
+  step();
+}
+function skipType(text){
+  if(typeTimer) clearTimeout(typeTimer);
+  dialogueText.innerHTML = text;
+  state.typing = false;
+}
+
+function showFact(f){
+  $("factTitle").textContent = f.title;
+  $("factText").textContent = f.text;
+  const pop = $("factPop");
+  pop.classList.add("show");
+  const close = ()=>{ pop.classList.remove("show");
+    pop.removeEventListener("click",close);
+    $("factCloseBtn").removeEventListener("click", btnClose);
+    renderNode(state.node, true);
+  };
+  const btnClose = (e)=>{ e.stopPropagation(); close(); };
+  $("factCloseBtn").addEventListener("click", btnClose);
+  pop.addEventListener("click", close);
+}
+
+function renderNode(id, afterFact){
+  const node = STORY[id];
+  if(!node) return;
+  state.node = id;
+
+  // 结局
+  if(node.isEnding){ showEnding(node); return; }
+
+  // 章节标题
+  if(node.chapter){
+    const parts = node.chapter.split("·");
+    showChapter(parts[0].trim(), (parts[1]||"").trim());
+    chapterTag.textContent = node.chapter;
+  }
+
+  // 场景
+  if(node.scene) setScene(node.scene);
+
+  // 教育小知识（先弹窗，再渲染对话）
+  if(node.fact && !afterFact){
+    showFact(node.fact);
+    return;
+  }
+
+  // 立绘
+  const sp = node.speaker;
+  if(sp==="nemo"){ setPortrait("right","nemo",true); setPortrait("left",null); }
+  else if(sp==="aronnax"){ setPortrait("left","aronnax",true); setPortrait("right",null); }
+  else if(sp==="ned"){ setPortrait("right","ned",true); setPortrait("left",null); }
+  else {
+    // 旁白：若有上一立绘则保留 dim，否则清空
+    setPortrait("left",null); setPortrait("right",null);
+  }
+
+  // 说话人
+  speakerName.textContent = node.name||"";
+  speakerName.className = sp||"narrator";
+
+  // 对话
+  typewriter(node.text, ()=>{
+    if(node.choices && node.choices.length){
+      renderChoices(node.choices);
+    } else if(node.next){
+      continueHint.style.display = "block";
+    }
+  });
+}
+
+function renderChoices(list){
+  choicesEl.innerHTML = "";
+  continueHint.style.display = "none";
+  list.forEach(c=>{
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.innerHTML = c.text + (c.tag?`<span class="tag">${c.tag}</span>`:"");
+    btn.onclick = (e)=>{
+      e.stopPropagation();
+      applyEff(c.eff);
+      renderNode(c.next);
+    };
+    choicesEl.appendChild(btn);
+  });
+}
+
+function showEnding(node){
+  setScene("ending");
+  setPortrait("left","aronnax",false);
+  setPortrait("right","nemo",false);
+  $("endTitle").textContent = node.title;
+  $("endText").textContent = node.text;
+  $("sCurio").textContent = state.curiosity;
+  $("sTrust").textContent = state.trust;
+  $("sKnow").textContent = state.knowledge;
+  $("dialogueBox").style.display = "none";
+  $("endingScreen").style.display = "flex";
+}
+
+// 点击对话框推进
+$("dialogueBox").addEventListener("click", e=>{
+  // 如果点击的是选项按钮或其子元素，不处理
+  let el = e.target;
+  while(el && el !== $("dialogueBox")){
+    if(el.classList && el.classList.contains("choice")) return;
+    el = el.parentElement;
+  }
+  if(state.typing){
+    skipType(STORY[state.node].text);
+    const node = STORY[state.node];
+    if(node.choices) renderChoices(node.choices);
+    else if(node.next) continueHint.style.display="block";
+    return;
+  }
+  const node = STORY[state.node];
+  if(!node) return;
+  if(node.choices && node.choices.length) return;
+  if(node.next){ renderNode(node.next); }
+});
+
+// 开始按钮
+$("startBtn").addEventListener("click", ()=>{
+  $("titleScreen").style.display = "none";
+  setScene("surface");
+  renderNode("start");
+});
+
+// 重玩
+$("replayBtn").addEventListener("click", ()=>{
+  state.curiosity=30; state.trust=20; state.knowledge=10; state.node="start";
+  updateStats();
+  $("endingScreen").style.display="none";
+  $("dialogueBox").style.display="block";
+  renderNode("start");
+});
+
+// 角色卡片立绘
+function setupCard(cardId, imgFile, svgId){
+  const card = $(cardId);
+  card.innerHTML = `<img src="${imgFile}" style="width:100%;height:100%;object-fit:contain;display:block" />
+    <svg style="display:none;width:100%;height:100%"><use href="#${svgId}"/></svg>`;
+  const img = card.querySelector("img");
+  const svg = card.querySelector("svg");
+  img.addEventListener("error", ()=>{
+    img.style.display = "none";
+    svg.style.display = "block";
+  });
+  img.addEventListener("load", ()=>{
+    img.style.display = "block";
+    svg.style.display = "none";
+  });
+}
+setupCard("cardNemo", "nemo.jpg", "svgNemo");
+setupCard("cardAronnax", "aronnax.jpg", "svgAronnax");
+
+// 生成气泡
+document.querySelectorAll(".bubbles").forEach(b=>{
+  const n = parseInt(b.dataset.b)||10;
+  for(let i=0;i<n;i++){
+    const el = document.createElement("div");
+    el.className="bubble";
+    const size = 6 + Math.random()*22;
+    el.style.width=size+"px"; el.style.height=size+"px";
+    el.style.left = Math.random()*100+"%";
+    el.style.animationDuration = (8+Math.random()*10)+"s";
+    el.style.animationDelay = (Math.random()*10)+"s";
+    b.appendChild(el);
+  }
+});
+
+// 键盘快捷键：空格/回车推进剧情
+document.addEventListener("keydown", e=>{
+  if(e.code==="Space" || e.code==="Enter"){
+    const fc = $("factPop");
+    if(fc.classList.contains("show")){
+      e.preventDefault();
+      fc.click();
+      return;
+    }
+    const ts = $("titleScreen");
+    if(ts.style.display !== "none" && ts.style.display !== "") return;
+    const es = $("endingScreen");
+    if(es.style.display === "flex") return;
+    e.preventDefault();
+    $("dialogueBox").click();
+  }
+});
+
+// 触摸/点击事件：确保立绘区域不会阻挡对话框
+document.addEventListener("click", e=>{
+  if(e.target.closest("#portraits")){
+    const db = $("dialogueBox");
+    if(db.style.display !== "none"){
+      const fakeEvent = new MouseEvent("click", {bubbles:true});
+      db.dispatchEvent(fakeEvent);
+    }
+  }
+});
+
+updateStats();
+</script>
 </body>
 </html>
