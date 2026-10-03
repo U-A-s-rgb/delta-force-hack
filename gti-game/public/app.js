@@ -84,10 +84,8 @@ loginForm.addEventListener('submit', async (e) => {
       if (data.role === 'admin') {
         setTimeout(() => { window.location.href = '/admin.html'; }, 700);
       } else {
-        setTimeout(() => {
-          // 普通用户进入游戏主界面（后续扩展）
-          document.body.innerHTML = '<div style="text-align:center;padding-top:40vh;color:#39ff9b;font-size:22px;letter-spacing:3px;">欢迎，' + username + '<br><span style="font-size:14px;color:#7fbfa0;">游戏主界面开发中...</span></div>';
-        }, 700);
+        sessionStorage.setItem('gti_username', username);
+        setTimeout(() => { window.location.href = '/map.html'; }, 700);
       }
     } else {
       setMsg(msg, data.msg, 'error');

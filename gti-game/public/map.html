@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.T.I. 作战地图</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #0a0f0c;
+    overflow: hidden;
+    font-family: "Courier New", "PingFang SC", "Microsoft YaHei", monospace;
+  }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px;
+    background: rgba(5,10,8,0.85);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    backdrop-filter: blur(6px);
+  }
+  .topbar .brand {
+    color: var(--neon);
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px rgba(57,255,155,0.5);
+  }
+  .topbar .brand small { color: var(--muted); font-size: 11px; margin-left: 10px; letter-spacing: 1px; }
+  .topbar .user-info { color: var(--muted); font-size: 13px; }
+  .topbar .user-info b { color: var(--neon); }
+  .topbar .logout-btn {
+    padding: 6px 14px; background: transparent;
+    border: 1px solid var(--border); color: var(--muted);
+    font-family: inherit; border-radius: 6px; cursor: pointer;
+    margin-left: 14px; transition: all 0.2s;
+  }
+  .topbar .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* 地图容器 */
+  .map-stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #0d1410;
+  }
+
+  /* 战术地图背景 */
+  .map-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(57,255,155,0.06), transparent 50%),
+      radial-gradient(ellipse at 70% 60%, rgba(255,180,80,0.05), transparent 50%),
+      linear-gradient(135deg, #14201a 0%, #0a1410 100%);
+  }
+  /* 等高线纹理 */
+  .map-bg svg.contours {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0.35;
+  }
+  /* 网格 */
+  .map-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(57,255,155,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,255,155,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* 节点标记 */
+  .node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 10;
+  }
+  .node .node-pin {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    border: 2px solid;
+    background: rgba(10,20,15,0.9);
+    transition: all 0.25s;
+    position: relative;
+  }
+  .node .node-pin::before {
+    content: "";
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 1px dashed currentColor;
+    opacity: 0.5;
+    animation: spin 12s linear infinite;
+  }
+  .node:hover .node-pin {
+    transform: scale(1.15);
+    box-shadow: 0 0 24px currentColor;
+  }
+  .node .node-label {
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .node .node-label .num {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-bottom: 3px;
+  }
+  .node .node-label .name {
+    display: block;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 6px currentColor;
+  }
+
+  /* 各节点配色 */
+  .node.bakhsh { color: #ff5b6e; }
+  .node.bakhsh .node-pin { border-color: #ff5b6e; box-shadow: 0 0 16px rgba(255,91,110,0.5); }
+  .node.bakhsh .num { background: rgba(255,91,110,0.2); color: #ff5b6e; }
+
+  .node.aerospace { color: #ffb454; }
+  .node.aerospace .node-pin { border-color: #ffb454; box-shadow: 0 0 16px rgba(255,180,80,0.5); }
+  .node.aerospace .num { background: rgba(255,180,80,0.2); color: #ffb454; }
+
+  .node.prison { color: #c98bff; }
+  .node.prison .node-pin { border-color: #c98bff; box-shadow: 0 0 16px rgba(201,139,255,0.5); }
+  .node.prison .num { background: rgba(201,139,255,0.2); color: #c98bff; }
+
+  .node.dam { color: #5bc0ff; }
+  .node.dam .node-pin { border-color: #5bc0ff; box-shadow: 0 0 16px rgba(91,192,255,0.5); }
+  .node.dam .num { background: rgba(91,192,255,0.2); color: #5bc0ff; }
+
+  .node.resort { color: #7dff9b; }
+  .node.resort .node-pin { border-color: #7dff9b; box-shadow: 0 0 16px rgba(125,255,155,0.5); }
+  .node.resort .num { background: rgba(125,255,155,0.2); color: #7dff9b; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 扫描线动画 */
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon), transparent);
+    opacity: 0.4;
+    animation: scan 6s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+
+  /* 详情面板 */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.show { display: flex; }
+
+  .detail-panel {
+    width: 90%; max-width: 520px;
+    background: rgba(10,25,18,0.95);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 0 40px rgba(57,255,155,0.2);
+    position: relative;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .detail-panel .close-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: transparent; border: none;
+    color: var(--muted); font-size: 22px; cursor: pointer;
+  }
+  .detail-panel .close-btn:hover { color: var(--danger); }
+
+  .detail-panel h2 {
+    color: var(--neon);
+    font-size: 22px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    padding-right: 30px;
+  }
+  .detail-panel .subtitle-en {
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+  }
+  .detail-panel .desc {
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(0,0,0,0.3);
+    border-left: 3px solid var(--neon);
+    border-radius: 4px;
+  }
+
+  .diff-section .diff-title {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .diff-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .diff-btn {
+    padding: 14px 16px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+  }
+  .diff-btn:hover {
+    border-color: var(--neon);
+    background: rgba(57,255,155,0.08);
+    box-shadow: 0 0 12px rgba(57,255,155,0.2);
+  }
+  .diff-btn.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+  }
+  .diff-btn .diff-name {
+    font-size: 15px;
+    letter-spacing: 2px;
+    font-weight: bold;
+  }
+  .diff-btn .diff-tag {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+
+  .diff-normal .diff-name { color: #7dff9b; }
+  .diff-normal .diff-tag { background: rgba(125,255,155,0.15); color: #7dff9b; border: 1px solid #7dff9b; }
+
+  .diff-confidential .diff-name { color: #ffb454; }
+  .diff-confidential .diff-tag { background: rgba(255,180,80,0.15); color: #ffb454; border: 1px solid #ffb454; }
+
+  .diff-topsecret .diff-name { color: #ff5b6e; }
+  .diff-topsecret .diff-tag { background: rgba(255,91,110,0.15); color: #ff5b6e; border: 1px solid #ff5b6e; }
+
+  .enter-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(57,255,155,0.2), rgba(31,174,110,0.2));
+    border: 1px solid var(--neon);
+    color: var(--neon);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .enter-btn:hover:not(:disabled) {
+    background: rgba(57,255,155,0.25);
+    box-shadow: 0 0 18px rgba(57,255,155,0.45);
+  }
+  .enter-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .legend {
+    position: fixed;
+    bottom: 16px; left: 20px;
+    display: flex;
+    gap: 14px;
+    z-index: 50;
+    background: rgba(5,10,8,0.7);
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  .hint {
+    position: fixed;
+    bottom: 16px; right: 20px;
+    color: var(--muted);
+    font-size: 11px;
+    z-index: 50;
+  }
+
+  /* 响应式 */
+  @media (max-width: 600px) {
+    .node .node-pin { width: 44px; height: 44px; font-size: 18px; }
+    .node .node-label .name { font-size: 12px; }
+    .detail-panel { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">G.T.I. 作战指挥中心 <small>OPERATIONAL MAP</small></div>
+    <div class="user-info">
+      干员：<b id="userName">--</b>
+      <button class="logout-btn" onclick="logout()">退出</button>
+    </div>
+  </div>
+
+  <div class="map-stage">
+    <div class="map-bg"></div>
+    <svg class="contours" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">
+      <!-- 等高线 -->
+      <g fill="none" stroke="#39ff9b" stroke-width="0.8" opacity="0.5">
+        <path d="M 100 150 Q 250 100 400 150 T 700 150"/>
+        <path d="M 120 200 Q 270 160 420 200 T 720 200"/>
+        <path d="M 140 250 Q 290 220 440 250 T 740 250"/>
+        <path d="M 80 400 Q 230 360 380 400 T 680 400"/>
+        <path d="M 100 450 Q 250 420 400 450 T 700 450"/>
+        <path d="M 120 500 Q 270 480 420 500 T 720 500"/>
+      </g>
+      <!-- 水域 -->
+      <g fill="rgba(91,192,255,0.12)" stroke="rgba(91,192,255,0.3)" stroke-width="1">
+        <path d="M 600 350 Q 750 320 880 400 L 950 500 Q 880 560 750 520 Q 650 480 600 350 Z"/>
+      </g>
+      <!-- 道路虚线 -->
+      <g fill="none" stroke="rgba(57,255,155,0.25)" stroke-width="1.2" stroke-dasharray="6 6">
+        <path d="M 200 200 L 500 350 L 800 200"/>
+        <path d="M 500 350 L 250 550"/>
+        <path d="M 500 350 L 750 550"/>
+      </g>
+    </svg>
+    <div class="map-grid"></div>
+    <div class="scan-line"></div>
+
+    <!-- 节点 01 潮汐监狱（中心） -->
+    <div class="node prison" data-id="prison" style="left:50%; top:45%;">
+      <div class="node-pin">🏰</div>
+      <div class="node-label">
+        <span class="num">01</span>
+        <span class="name">潮汐监狱</span>
+      </div>
+    </div>
+
+    <!-- 节点 02 航天基地（右上） -->
+    <div class="node aerospace" data-id="aerospace" style="left:78%; top:20%;">
+      <div class="node-pin">🚀</div>
+      <div class="node-label">
+        <span class="num">02</span>
+        <span class="name">航天基地</span>
+      </div>
+    </div>
+
+    <!-- 节点 03 巴克什实验基地（左上） -->
+    <div class="node bakhsh" data-id="bakhsh" style="left:22%; top:22%;">
+      <div class="node-pin">🧪</div>
+      <div class="node-label">
+        <span class="num">03</span>
+        <span class="name">巴克什实验基地</span>
+      </div>
+    </div>
+
+    <!-- 节点 04 重要水利设施（右下） -->
+    <div class="node dam" data-id="dam" style="left:78%; top:72%;">
+      <div class="node-pin">💧</div>
+      <div class="node-label">
+        <span class="num">04</span>
+        <span class="name">重要水利设施</span>
+      </div>
+    </div>
+
+    <!-- 节点 05 旅游胜地（左下） -->
+    <div class="node resort" data-id="resort" style="left:22%; top:72%;">
+      <div class="node-pin">🏖️</div>
+      <div class="node-label">
+        <span class="num">05</span>
+        <span class="name">旅游胜地</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:#7dff9b"></span>普通</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#ffb454"></span>机密</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#ff5b6e"></span>绝密</div>
+  </div>
+
+  <div class="hint">点击地图节点选择任务区域</div>
+
+  <!-- 详情面板 -->
+  <div class="overlay" id="overlay">
+    <div class="detail-panel">
+      <button class="close-btn" onclick="closePanel()">✕</button>
+      <h2 id="pTitle">--</h2>
+      <div class="subtitle-en" id="pSubtitle">--</div>
+      <div class="desc" id="pDesc">--</div>
+      <div class="diff-section">
+        <div class="diff-title">▼ 选择行动难度</div>
+        <div class="diff-options" id="diffOptions"></div>
+      </div>
+      <button class="enter-btn" id="enterBtn" disabled>进 入 地 图</button>
+    </div>
+  </div>
+
+  <script src="map.js"></script>
+</body>
+</html>
