@@ -1,0 +1,206 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --neon: #39ff9b;
+  --neon-dim: #1fae6e;
+  --bg: #050a07;
+  --panel: rgba(10, 25, 18, 0.78);
+  --border: rgba(57, 255, 155, 0.35);
+  --text: #d6ffe8;
+  --muted: #7fbfa0;
+  --danger: #ff5b6e;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "Courier New", "PingFang SC", "Microsoft YaHei", monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* 背景网格扫描线 */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(57, 255, 155, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 155, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+.bg-grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(57,255,155,0.12), transparent 60%);
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 28px;
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 30px rgba(57, 255, 155, 0.18),
+    inset 0 0 30px rgba(57, 255, 155, 0.05);
+}
+
+/* Logo */
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.gti-logo {
+  width: 150px;
+  height: 150px;
+  filter: drop-shadow(0 0 10px rgba(57, 255, 155, 0.55));
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(57, 255, 155, 0.55)); }
+  50% { filter: drop-shadow(0 0 20px rgba(57, 255, 155, 0.85)); }
+}
+
+/* 标题 */
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--neon);
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(57, 255, 155, 0.7);
+  margin-bottom: 4px;
+}
+.subtitle {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 4px;
+  margin-bottom: 24px;
+}
+
+/* 标签切换 */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.25s;
+}
+.tab.active {
+  background: rgba(57, 255, 155, 0.12);
+  color: var(--neon);
+  border-color: var(--neon);
+  box-shadow: 0 0 12px rgba(57, 255, 155, 0.3);
+}
+
+/* 表单 */
+.form { display: none; }
+.form.active { display: block; }
+
+.field {
+  margin-bottom: 16px;
+}
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.field input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+.field input:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 10px rgba(57, 255, 155, 0.3);
+}
+.field input::placeholder {
+  color: rgba(127, 191, 160, 0.5);
+}
+
+/* 按钮 */
+.btn {
+  width: 100%;
+  padding: 13px;
+  margin-top: 6px;
+  background: linear-gradient(135deg, rgba(57,255,155,0.2), rgba(31,174,110,0.2));
+  border: 1px solid var(--neon);
+  color: var(--neon);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-shadow: 0 0 8px rgba(57, 255, 155, 0.6);
+}
+.btn:hover {
+  background: rgba(57, 255, 155, 0.25);
+  box-shadow: 0 0 18px rgba(57, 255, 155, 0.45);
+  transform: translateY(-1px);
+}
+.btn:active { transform: translateY(0); }
+
+/* 消息 */
+.msg {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 13px;
+  min-height: 18px;
+  letter-spacing: 1px;
+}
+.msg.error { color: var(--danger); }
+.msg.success { color: var(--neon); }
+
+.tip {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .gti-logo { width: 120px; height: 120px; }
+  .title { font-size: 20px; }
+}

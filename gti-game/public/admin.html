@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.T.I. 管理后台</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .container { max-width: 780px; }
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-header h2 {
+    color: var(--neon);
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 11px;
+    background: rgba(57,255,155,0.15);
+    border: 1px solid var(--neon);
+    border-radius: 10px;
+    color: var(--neon);
+    margin-left: 8px;
+  }
+  .logout-btn {
+    padding: 7px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: inherit;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 26px;
+  }
+  .module-card {
+    padding: 18px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: default;
+    transition: all 0.2s;
+  }
+  .module-card.locked { opacity: 0.55; }
+  .module-card .icon { font-size: 26px; margin-bottom: 8px; }
+  .module-card .name { color: var(--neon); font-size: 14px; margin-bottom: 4px; letter-spacing: 1px; }
+  .module-card .desc { color: var(--muted); font-size: 11px; line-height: 1.5; }
+  .soon { color: #ffb454; font-size: 10px; margin-top: 6px; display: block; }
+
+  .section-title {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(57,255,155,0.12);
+  }
+  th { color: var(--neon); font-weight: normal; letter-spacing: 1px; }
+  td { color: var(--text); }
+  .del-btn {
+    padding: 4px 12px;
+    background: transparent;
+    border: 1px solid rgba(255,91,110,0.4);
+    color: var(--danger);
+    font-family: inherit;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .del-btn:hover { background: rgba(255,91,110,0.15); }
+  .empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .refresh-btn {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--neon);
+    font-family: inherit;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .refresh-btn:hover { background: rgba(57,255,155,0.1); }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="container">
+    <div class="admin-header">
+      <h2>G.T.I. 管理控制台<span class="badge">管理员：哈基米</span></h2>
+      <button class="logout-btn" onclick="logout()">退出登录</button>
+    </div>
+
+    <!-- 功能模块（后续扩展） -->
+    <div class="section-title">功能模块</div>
+    <div class="modules">
+      <div class="module-card">
+        <div class="icon">👥</div>
+        <div class="name">人员管理</div>
+        <div class="desc">查看与删除已注册的应急人员</div>
+      </div>
+      <div class="module-card locked">
+        <div class="icon">📋</div>
+        <div class="name">任务指派</div>
+        <div class="desc">向人员下发应急任务</div>
+        <span class="soon">待开发</span>
+      </div>
+      <div class="module-card locked">
+        <div class="icon">🗺️</div>
+        <div class="name">威胁地图</div>
+        <div class="desc">监控全球威胁分布</div>
+        <span class="soon">待开发</span>
+      </div>
+      <div class="module-card locked">
+        <div class="icon">⚙️</div>
+        <div class="name">系统设置</div>
+        <div class="desc">组织参数与权限配置</div>
+        <span class="soon">待开发</span>
+      </div>
+    </div>
+
+    <!-- 人员列表 -->
+    <div class="section-title">注册人员列表</div>
+    <button class="refresh-btn" onclick="loadUsers()">🔄 刷新</button>
+    <div id="userList"></div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
